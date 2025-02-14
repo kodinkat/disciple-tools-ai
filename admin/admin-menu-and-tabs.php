@@ -79,8 +79,7 @@ class Disciple_Tools_AI_Menu {
             <h2><?php echo esc_html( $this->page_title ) ?></h2>
             <h2 class="nav-tab-wrapper">
                 <a href="<?php echo esc_attr( $link ) . 'general' ?>"
-                   class="nav-tab <?php echo esc_html( ( $tab == 'general' || !isset( $tab ) ) ? 'nav-tab-active' : '' ); ?>">General</a>
-                <a href="<?php echo esc_attr( $link ) . 'second' ?>" class="nav-tab <?php echo esc_html( ( $tab == 'second' ) ? 'nav-tab-active' : '' ); ?>">Second</a>
+                   class="nav-tab <?php echo esc_html( ( $tab == 'general' || !isset( $tab ) ) ? 'nav-tab-active' : '' ); ?>">AI Settings</a>
             </h2>
 
             <?php
@@ -140,7 +139,9 @@ class Disciple_Tools_AI_Tab_General {
         $token = Disciple_Tools_AI_Menu::instance()->token;
         $this->process_form_fields( $token );
 
-        $my_plugin_option = get_option( $token . '_my_plugin_option' );
+        $LLM_endpoint = get_option( 'DT_AI_LLM_endpoint' );
+        $LLM_api_key = get_option( 'DT_AI_LLM_api_key' );
+        $LLM_model = get_option( 'DT_AI_LLM_model' );
         ?>
         <form method="post">
             <?php wp_nonce_field( 'dt_admin_form', 'dt_admin_form_nonce' ) ?>
@@ -154,10 +155,26 @@ class Disciple_Tools_AI_Tab_General {
                 <tbody>
                 <tr>
                     <td>
-                        My Plugin Option
+                        Your LLM Endpoint
                     </td>
                     <td>
-                        <input type="text" name="my-plugin-option" placeholder="" value="<?php echo esc_attr( $my_plugin_option ) ?>">
+                        <input type="text" name="llm-endpoint" placeholder="" value="<?php echo esc_attr( $LLM_endpoint ) ?>" style="width: 100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Your LLM API Key
+                    </td>
+                    <td>
+                        <input type="text" name="llm-api-key" placeholder="" value="<?php echo esc_attr( $LLM_api_key ) ?>" style="width: 100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Your LLM Model
+                    </td>
+                    <td>
+                        <input type="text" name="llm-model" placeholder="" value="<?php echo esc_attr( $LLM_model ) ?>" style="width: 100%">
                     </td>
                 </tr>
                 <tr>
@@ -179,8 +196,16 @@ class Disciple_Tools_AI_Tab_General {
 
             $post_vars = dt_recursive_sanitize_array( $_POST );
 
-            if ( isset( $post_vars['my-plugin-option'] ) ) {
-                update_option( $token . '_my_plugin_option', $post_vars['my-plugin-option'] );
+            if ( isset( $post_vars['llm-api-key'] ) ) {
+                update_option( 'DT_AI_LLM_api_key', $post_vars['llm-api-key'] );
+            }
+
+            if ( isset( $post_vars['llm-endpoint'] ) ) {
+                update_option( 'DT_AI_LLM_endpoint', $post_vars['llm-endpoint'] );
+            }
+
+            if ( isset( $post_vars['llm-model'] ) ) {
+                update_option( 'DT_AI_LLM_model', $post_vars['llm-model'] );
             }
         }
     }

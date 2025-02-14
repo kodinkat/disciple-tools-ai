@@ -22,8 +22,8 @@ class Disciple_Tools_AI_Endpoints
         $namespace = 'disciple-tools-ai/v1';
 
         register_rest_route(
-            $namespace, '/endpoint', [
-                'methods'  => 'GET',
+            $namespace, '/dt-ai-summarize', [
+                'methods'  => 'POST',
                 'callback' => [ $this, 'endpoint' ],
                 'permission_callback' => function( WP_REST_Request $request ) {
                     return $this->has_permission();
@@ -34,10 +34,48 @@ class Disciple_Tools_AI_Endpoints
 
 
     public function endpoint( WP_REST_Request $request ) {
+        // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
+        $prompt = $request->get_param( 'prompt' );
+        $LLM_endpoint_root = get_option( 'DT_AI_LLM_endpoint' );
+        $LLM_api_key = get_option( 'DT_AI_LLM_api_key' );
+        $LLM_model = get_option( 'DT_AI_LLM_model' );
 
-        // @todo run your function here
+        $LLM_endpoint = $LLM_endpoint_root . '/chat/completions';
+        dt_write_log('LLM_endpoint: ' . $LLM_endpoint);
+        dt_write_log('LLM_api_key: ' . $LLM_api_key);
 
-        return true;
+        $response = wp_remote_post( $LLM_endpoint, [
+            'method' => 'POST',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $LLM_api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode( [
+                'model' => $LLM_model,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt,
+                    ],
+                ],
+                'max_completion_tokens' => 1000,
+                'temperature' => 1,
+                'top_p' => 1,
+            ] ),
+            'timeout' => 30,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'api_error', 'Failed to connect to LLM API', [ 'status' => 500 ] );
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        dt_write_log($body);
+
+        return $body['choices'][0]['message']['content'];
+
+        return rest_ensure_response( $data );
     }
 
     private static $_instance = null;
