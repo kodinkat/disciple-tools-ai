@@ -36,20 +36,20 @@ class Disciple_Tools_AI_Endpoints
     public function endpoint( WP_REST_Request $request ) {
         // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
         $prompt = $request->get_param( 'prompt' );
-        $LLM_endpoint_root = get_option( 'DT_AI_LLM_endpoint' );
-        $LLM_api_key = get_option( 'DT_AI_LLM_api_key' );
-        $LLM_model = get_option( 'DT_AI_LLM_model' );
+        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
+        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
+        $llm_model = get_option( 'DT_AI_llm_model' );
 
-        $LLM_endpoint = $LLM_endpoint_root . '/chat/completions';
+        $llm_endpoint = $llm_endpoint_root . '/chat/completions';
 
-        $response = wp_remote_post( $LLM_endpoint, [
+        $response = wp_remote_post( $llm_endpoint, [
             'method' => 'POST',
             'headers' => [
-                'Authorization' => 'Bearer ' . $LLM_api_key,
+                'Authorization' => 'Bearer ' . $llm_api_key,
                 'Content-Type' => 'application/json',
             ],
             'body' => json_encode( [
-                'model' => $LLM_model,
+                'model' => $llm_model,
                 'messages' => [
                     [
                         'role' => 'user',
@@ -67,7 +67,7 @@ class Disciple_Tools_AI_Endpoints
             return new WP_Error( 'api_error', 'Failed to connect to LLM API', [ 'status' => 500 ] );
         }
 
-        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
 
         return $body['choices'][0]['message']['content'];
 

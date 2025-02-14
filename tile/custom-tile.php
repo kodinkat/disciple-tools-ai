@@ -41,23 +41,6 @@ class Disciple_Tools_AI_Tile
      * @return array
      */
     public function dt_custom_fields( array $fields, string $post_type = '' ) {
-        /**
-         * @todo set the post type
-         */
-        if ( $post_type === 'contacts' || $post_type === 'group' ){
-            /**
-             * @todo Add the fields that you want to include in your tile.
-             *
-             * Examples for creating the $fields array
-             * Contacts
-             * @link https://github.com/DiscipleTools/disciple-tools-theme/blob/256c9d8510998e77694a824accb75522c9b6ed06/dt-contacts/base-setup.php#L108
-             *
-             * Groups
-             * @link https://github.com/DiscipleTools/disciple-tools-theme/blob/256c9d8510998e77694a824accb75522c9b6ed06/dt-groups/base-setup.php#L83
-             */
-
-
-        }
         return $fields;
     }
 
@@ -81,9 +64,9 @@ class Disciple_Tools_AI_Tile
             <script>
                 document.addEventListener('DOMContentLoaded', function(){
                     document.getElementById('dt-ai-summary-button').addEventListener('click', function(){
-                        var endpoint = '<?php echo get_option( 'disciple_tools_ai_LLM_endpoint' ) ?>';
-                        var api_key = '<?php echo get_option( 'disciple_tools_ai_LLM_api_key' ) ?>';
-                        var nonce = '<?php echo $nonce; ?>'; // Pass the nonce to JavaScript
+                        var endpoint = '<?php echo esc_url( get_option( 'disciple_tools_ai_llm_endpoint' ) ); ?>';
+                        var api_key = '<?php echo esc_js( get_option( 'disciple_tools_ai_llm_api_key' ) ); ?>';
+                        var nonce = '<?php echo esc_js( $nonce ); ?>'; // Pass the nonce to JavaScript
 
                         this.classList.add('loading');
 
@@ -150,10 +133,10 @@ class Disciple_Tools_AI_Tile
                 <!-- @todo remove this notes section-->
                 <div class="dt-tile">
                     <div class="dt-tile-header">
-                        <h3><?php _e( 'Summary', 'disciple-tools-ai' ) ?></h3>
+                        <h3><?php esc_html_e( 'Summary', 'disciple-tools-ai' ) ?></h3>
                     </div>
                     <div class="dt-tile-content">
-                        <button id="dt-ai-summary-button" class="button loader"><?php _e( 'Summarize This Contact', 'disciple-tools-ai' ) ?></button>
+                        <button id="dt-ai-summary-button" class="button loader"><?php esc_html_e( 'Summarize This Contact', 'disciple-tools-ai' ) ?></button>
                         <p id="dt-ai-summary"></p>
                     </div>
             </div>
