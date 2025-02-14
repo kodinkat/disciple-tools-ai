@@ -1,7 +1,7 @@
 <?php
 if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
 
-class Disciple_Tools_Plugin_Starter_Template_Endpoints
+class Disciple_Tools_AI_Endpoints
 {
     /**
      * @todo Set the permissions your endpoint needs
@@ -19,11 +19,11 @@ class Disciple_Tools_Plugin_Starter_Template_Endpoints
      */
     //See https://github.com/DiscipleTools/disciple-tools-theme/wiki/Site-to-Site-Link for outside of wordpress authentication
     public function add_api_routes() {
-        $namespace = 'disciple-tools-plugin-starter-template/v1';
+        $namespace = 'disciple-tools-ai/v1';
 
         register_rest_route(
-            $namespace, '/endpoint', [
-                'methods'  => 'GET',
+            $namespace, '/dt-ai-summarize', [
+                'methods'  => 'POST',
                 'callback' => [ $this, 'endpoint' ],
                 'permission_callback' => function( WP_REST_Request $request ) {
                     return $this->has_permission();
@@ -34,10 +34,44 @@ class Disciple_Tools_Plugin_Starter_Template_Endpoints
 
 
     public function endpoint( WP_REST_Request $request ) {
+        // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
+        $prompt = $request->get_param( 'prompt' );
+        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
+        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
+        $llm_model = get_option( 'DT_AI_llm_model' );
 
-        // @todo run your function here
+        $llm_endpoint = $llm_endpoint_root . '/chat/completions';
 
-        return true;
+        $response = wp_remote_post( $llm_endpoint, [
+            'method' => 'POST',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $llm_api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode( [
+                'model' => $llm_model,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt,
+                    ],
+                ],
+                'max_completion_tokens' => 1000,
+                'temperature' => 1,
+                'top_p' => 1,
+            ] ),
+            'timeout' => 30,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'api_error', 'Failed to connect to LLM API', [ 'status' => 500 ] );
+        }
+
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        return $body['choices'][0]['message']['content'];
+
+        return rest_ensure_response( $data );
     }
 
     private static $_instance = null;
@@ -60,4 +94,4 @@ class Disciple_Tools_Plugin_Starter_Template_Endpoints
         return $pass;
     }
 }
-Disciple_Tools_Plugin_Starter_Template_Endpoints::instance();
+Disciple_Tools_AI_Endpoints::instance();

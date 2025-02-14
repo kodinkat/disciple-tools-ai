@@ -12,7 +12,7 @@ if ( !defined( 'ABSPATH' ) ) { exit; } // Exit if accessed directly.
  * @see https://disciple.tools/plugins/porch/
  * @see https://disciple.tools/plugins/disciple-tools-porch-template/
  */
-class Disciple_Tools_Plugin_Starter_Template_Magic_Home_App extends DT_Magic_Url_Base
+class Disciple_Tools_AI_Magic_Home_App extends DT_Magic_Url_Base
 {
     public $magic = false;
     public $parts = false;
@@ -92,4 +92,4 @@ class Disciple_Tools_Plugin_Starter_Template_Magic_Home_App extends DT_Magic_Url
         <?php
     }
 }
-Disciple_Tools_Plugin_Starter_Template_Magic_Home_App::instance();
+Disciple_Tools_AI_Magic_Home_App::instance();
