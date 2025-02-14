@@ -41,8 +41,6 @@ class Disciple_Tools_AI_Endpoints
         $LLM_model = get_option( 'DT_AI_LLM_model' );
 
         $LLM_endpoint = $LLM_endpoint_root . '/chat/completions';
-        dt_write_log('LLM_endpoint: ' . $LLM_endpoint);
-        dt_write_log('LLM_api_key: ' . $LLM_api_key);
 
         $response = wp_remote_post( $LLM_endpoint, [
             'method' => 'POST',
@@ -70,8 +68,6 @@ class Disciple_Tools_AI_Endpoints
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
-
-        dt_write_log($body);
 
         return $body['choices'][0]['message']['content'];
 

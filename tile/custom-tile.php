@@ -85,13 +85,14 @@ class Disciple_Tools_AI_Tile
                         var api_key = '<?php echo get_option( 'disciple_tools_ai_LLM_api_key' ) ?>';
                         var nonce = '<?php echo $nonce; ?>'; // Pass the nonce to JavaScript
 
+                        this.classList.add('loading');
+
                         prepareDataForLLM( window.commentsSettings.comments.comments, window.commentsSettings.activity.activity, nonce );
+
                     });
                 });
 
                 function prepareDataForLLM(commentData, activityData, nonce) {
-                    console.log('commentData', commentData);
-                    console.log('activityData', activityData);
 
                     var combinedData = [];
 
@@ -115,8 +116,6 @@ class Disciple_Tools_AI_Tile
                         return new Date(a.date) - new Date(b.date);
                     });
 
-                    console.log('combinedData', combinedData);
-
                     var prompt = "Summarize the following activities and comments:\n\n";
                     combinedData.forEach(function(item){
                         prompt += item.date + " - " + item.type + ": " + item.content + "\n";
@@ -134,7 +133,10 @@ class Disciple_Tools_AI_Tile
                     .then(data => {
                         let summaryContainer = document.querySelector('#dt-ai-summary')
 
+                        document.querySelector('#dt-ai-summary-button').classList.remove('loading');
+
                         summaryContainer.innerText = data;
+                        $('.grid').masonry('layout');
                     })
                     .catch(error => {
                         console.error('Error:', error);
