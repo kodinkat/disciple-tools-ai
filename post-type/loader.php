@@ -18,13 +18,13 @@ add_filter( 'dt_post_type_modules', function( $modules ){
      * @todo Update the starter in the array below 'starter_base'. Follow the pattern.
      * @todo Add more modules by adding a new array element. i.e. 'starter_base_two'.
      */
-    $modules['starter_base'] = [
-        'name' => __( 'Starter', 'disciple-tools-ai' ),
+    $modules['ai_base'] = [
+        'name' => __( 'AI', 'disciple-tools-ai' ),
         'enabled' => true,
         'locked' => true,
         'prerequisites' => [ 'contacts_base' ],
-        'post_type' => 'starter_post_type',
-        'description' => __( 'Default starter functionality', 'disciple-tools-ai' )
+        'post_type' => 'ai',
+        'description' => __( 'AI Functionality', 'disciple-tools-ai' )
     ];
 
     return $modules;

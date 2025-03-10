@@ -28,9 +28,8 @@ class Disciple_Tools_AI_Tile
      * @return mixed
      */
     public function dt_details_additional_tiles( $tiles, $post_type = '' ) {
-        if ( $post_type === 'contacts' || $post_type === 'starter_post_type' ){
+        if ( in_array( $post_type, [ 'contacts', 'ai' ] ) ){
             $tiles['disciple_tools_ai'] = [ 'label' => __( 'Disciple Tools AI', 'disciple-tools-ai' ) ];
-            $tiles['a_beautiful_tile'] = [ 'label' => __( 'A Beautiful Tile', 'disciple-tools-ai' ) ];
         }
         return $tiles;
     }
@@ -48,7 +47,7 @@ class Disciple_Tools_AI_Tile
         /**
          * @todo set the post type and the section key that you created in the dt_details_additional_tiles() function
          */
-        if ( ( $post_type === 'contacts' || $post_type === 'starter_post_type' ) && $section === 'disciple_tools_ai' ){
+        if ( in_array( $post_type, [ 'contacts', 'ai' ] ) && $section === 'disciple_tools_ai' ){
             /**
              * These are two sets of key data:
              * $this_post is the details for this specific post
@@ -70,12 +69,15 @@ class Disciple_Tools_AI_Tile
 
                         this.classList.add('loading');
 
-                        prepareDataForLLM( window.commentsSettings.comments.comments, window.commentsSettings.activity.activity, nonce );
+                        const post_type = window.commentsSettings?.post?.post_type;
+                        const post_id = window.commentsSettings?.post?.ID;
+
+                        prepareDataForLLM( post_type, post_id, window.commentsSettings.comments.comments, window.commentsSettings.activity.activity, nonce );
 
                     });
                 });
 
-                function prepareDataForLLM(commentData, activityData, nonce) {
+                function prepareDataForLLM(post_type, post_id, commentData, activityData, nonce) {
 
                     var combinedData = [];
 
@@ -99,7 +101,7 @@ class Disciple_Tools_AI_Tile
                         return new Date(a.date) - new Date(b.date);
                     });
 
-                    var prompt = "Summarize the following activities and comments:\n\n";
+                    let prompt = "If comments count is less than 5, then summarize in only 20 words; otherwise, summarize in only 100 words; the following activities and comments. Prioritize comments over activities:\n\n";
                     combinedData.forEach(function(item){
                         prompt += item.date + " - " + item.type + ": " + item.content + "\n";
                     });
@@ -110,16 +112,26 @@ class Disciple_Tools_AI_Tile
                             'Content-Type': 'application/json',
                             'X-WP-Nonce': nonce // Include the nonce in the headers
                         },
-                        body: JSON.stringify({ prompt: prompt })
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            post_type,
+                            post_id
+                        })
                     })
                     .then(response => response.json())
                     .then(data => {
-                        let summaryContainer = document.querySelector('#dt-ai-summary')
 
                         document.querySelector('#dt-ai-summary-button').classList.remove('loading');
 
-                        summaryContainer.innerText = data;
-                        $('.grid').masonry('layout');
+                        // Determine action to take based on endpoint response.
+                        if ( data?.updated ) {
+                            window.location.reload();
+
+                        } else {
+                            document.querySelector('#dt-ai-summary').innerText = data?.summary;
+                            $('.grid').masonry('layout');
+                        }
+
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -132,11 +144,8 @@ class Disciple_Tools_AI_Tile
             <div class="cell small-12 medium-4">
                 <!-- @todo remove this notes section-->
                 <div class="dt-tile">
-                    <div class="dt-tile-header">
-                        <h3><?php esc_html_e( 'Summary', 'disciple-tools-ai' ) ?></h3>
-                    </div>
                     <div class="dt-tile-content">
-                        <button id="dt-ai-summary-button" class="button loader"><?php esc_html_e( 'Summarize This Contact', 'disciple-tools-ai' ) ?></button>
+                        <button id="dt-ai-summary-button" class="button loader" style="min-width: 100%;"><?php esc_html_e( 'Summarize This Contact', 'disciple-tools-ai' ) ?></button>
                         <p id="dt-ai-summary"></p>
                     </div>
             </div>
