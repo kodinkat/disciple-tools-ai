@@ -12,12 +12,12 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
      * @todo update these variables with your post_type, module key, and names.
      * @var string
      */
-    public $post_type = 'starter_post_type';
-    public $module = 'starter_base';
-    public $single_name = 'Starter';
-    public $plural_name = 'Starters';
+    public $post_type = 'ai';
+    public $module = 'ai_base';
+    public $single_name = 'AI';
+    public $plural_name = 'AI';
     public static function post_type(){
-        return 'starter_post_type';
+        return 'ai';
     }
 
     private static $_instance = null;
@@ -59,8 +59,8 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
     }
 
     public function after_setup_theme(){
-        $this->single_name = __( 'Starter', 'disciple-tools-ai' );
-        $this->plural_name = __( 'Starters', 'disciple-tools-ai' );
+        $this->single_name = __( 'AI', 'disciple-tools-ai' );
+        $this->plural_name = __( 'AI', 'disciple-tools-ai' );
 
         if ( class_exists( 'Disciple_Tools_Post_Type_Template' ) ) {
             new Disciple_Tools_Post_Type_Template( $this->post_type, $this->single_name, $this->plural_name );
@@ -75,8 +75,8 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
      */
     public function dt_get_post_type_settings( $settings, $post_type ){
         if ( $post_type === $this->post_type ){
-            $settings['label_singular'] = __( 'Starter', 'disciple-tools-ai' );
-            $settings['label_plural'] = __( 'Starters', 'disciple-tools-ai' );
+            $settings['label_singular'] = __( 'AI', 'disciple-tools-ai' );
+            $settings['label_plural'] = __( 'AI', 'disciple-tools-ai' );
         }
         return $settings;
     }
@@ -130,8 +130,6 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
     public function dt_custom_fields_settings( $fields, $post_type ){
         if ( $post_type === $this->post_type ){
 
-
-
             /**
              * @todo configure status appropriate to your post type
              * @todo modify strings and add elements to default array
@@ -167,11 +165,9 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 'show_in_table' => 16,
             ];
 
-
-
             /**
              * Common and recommended fields
-             */
+             *
             $fields['start_date'] = [
                 'name'        => __( 'Start Date', 'disciple-tools-ai' ),
                 'description' => '',
@@ -223,13 +219,13 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 $fields['contact_address']['custom_display'] = true;
                 $fields['contact_address']['mapbox'] = true;
                 unset( $fields['contact_address']['tile'] );
-            }
+            }*/
             // end locations
 
             /**
              * @todo this adds generational support to this post type. remove if not needed.
              * generation and peer connection fields
-             */
+             *
             $fields['parents'] = [
                 'name' => __( 'Parents', 'disciple-tools-ai' ),
                 'description' => '',
@@ -262,13 +258,13 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 'tile' => 'connections',
                 'icon' => get_template_directory_uri() . '/dt-assets/images/group-child.svg',
                 'create-icon' => get_template_directory_uri() . '/dt-assets/images/add-group.svg',
-            ];
+            ];*/
             // end generations
 
             /**
              * @todo this adds people groups support to this post type. remove if not needed.
              * Connections to other post types
-             */
+             *
             $fields['peoplegroups'] = [
                 'name' => __( 'People Groups', 'disciple-tools-ai' ),
                 'description' => __( 'The people groups connected to this record.', 'disciple-tools-ai' ),
@@ -291,12 +287,21 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 'icon' => get_template_directory_uri() . '/dt-assets/images/group-type.svg',
                 'create-icon' => get_template_directory_uri() . '/dt-assets/images/add-contact.svg',
                 'show_in_table' => 35
+            ];*/
+        }
+
+        if ( in_array( $post_type, [ 'contacts', 'ai' ] ) ) {
+            $fields['ai_summary'] = [
+                'name' => __( 'Summary', 'disciple-tools-ai' ),
+                'type' => 'textarea',
+                'tile' => 'disciple_tools_ai',
+                'icon' => get_template_directory_uri() . '/dt-assets/images/socialmedia.svg',
             ];
         }
 
         /**
          * @todo this adds connection to contacts. remove if not needed.
-         */
+         *
         if ( $post_type === 'contacts' ){
             $fields[$this->post_type] = [
                 'name' => $this->plural_name,
@@ -310,11 +315,11 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 'create-icon' => get_template_directory_uri() . '/dt-assets/images/add-group.svg',
                 'show_in_table' => 35
             ];
-        }
+        }*/
 
         /**
          * @todo this adds connection to groups. remove if not needed.
-         */
+         *
         if ( $post_type === 'groups' ){
             $fields[$this->post_type] = [
                 'name' => $this->plural_name,
@@ -328,7 +333,7 @@ class Disciple_Tools_AI_Base extends DT_Module_Base {
                 'create-icon' => get_template_directory_uri() . '/dt-assets/images/add-group.svg',
                 'show_in_table' => 35
             ];
-        }
+        }*/
         return $fields;
     }
 

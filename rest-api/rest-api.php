@@ -36,6 +36,10 @@ class Disciple_Tools_AI_Endpoints
     public function endpoint( WP_REST_Request $request ) {
         // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
         $prompt = $request->get_param( 'prompt' );
+
+        $post_type = $request->get_param( 'post_type' );
+        $post_id = $request->get_param( 'post_id' );
+
         $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
@@ -69,9 +73,21 @@ class Disciple_Tools_AI_Endpoints
 
         $body = json_decode( wp_remote_retrieve_body( $response ), true );
 
-        return $body['choices'][0]['message']['content'];
+        $summary = $body['choices'][0]['message']['content'];
 
-        return rest_ensure_response( $data );
+        $post_updated = false;
+        if ( isset( $post_type, $post_id ) && in_array( $post_type, [ 'contacts', 'ai' ] ) ) {
+            $updated = DT_Posts::update_post( $post_type, $post_id, [
+                'ai_summary' => $summary
+            ] );
+
+            $post_updated = !is_wp_error( $updated );
+        }
+
+        return [
+            'updated' => $post_updated,
+            'summary' => $summary
+        ];
     }
 
     private static $_instance = null;
