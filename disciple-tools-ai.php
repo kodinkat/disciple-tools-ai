@@ -169,6 +169,11 @@ class Disciple_Tools_AI {
          * To remove: delete the line below and remove the folder named /workflows
          */
         require_once( 'workflows/workflows.php' );
+
+        /**
+         * Build required datasets.
+         */
+        require_once( 'data/data.php' );
     }
 
     /**

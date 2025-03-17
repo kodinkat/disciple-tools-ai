@@ -1,0 +1,53 @@
+API Filter Structure:
+
+The filter object should be a JSON structure with the following possible fields:
+
+- sort (string): Specifies the sorting order of the results.
+  - Options:
+    - "name": Sort by the name or title of the record.
+    - "post_date": Sort by the creation date of the record.
+    - Any field_key: Sort by a specific field.
+    - Prefix with "-" for descending order.
+  - Example: "sort": "-post_date" (sorts by creation date from newest to oldest).
+
+- assigned_to (array): Filters records based on assignment.
+  - Options:
+    - "me": Records assigned to the user making the query.
+    - User ID (e.g., 83): Records assigned to a specific user.
+    - Exclusion (e.g., "-84"): Exclude records assigned to a specific user.
+  - Example: "assigned_to": ["me"] (records assigned to the current user).
+
+- key_select, multi_select, tags (array): Filters based on specific keys or tags.
+  - Example: "milestones": ["milestone_has_bible", "milestone_reading_bible"] (records with specific milestones).
+
+- connection (array): Filters based on connections.
+  - Example: "subassigned": [93, -23] (records subassigned to contact 93 and not subassigned to contact 23).
+
+- location (array): Filters based on location grid IDs.
+  - Example: "location": [12345] (records associated with a specific location).
+
+- date (object): Filters based on date fields.
+  - Structure:
+    - "field": The date field to filter on.
+    - "operator": Comparison operator (">", "<", ">=", "<=", "=", "!=").
+    - "value": The date value in YYYY-MM-DD format.
+  - Example: "date": {"field": "created_at", "operator": ">", "value": "2024-01-01"} (records created after January 1, 2024).
+
+- boolean (object): Filters based on boolean fields.
+  - Structure:
+    - "field": The boolean field to filter on.
+    - "value": Boolean value (true or false).
+  - Example: "boolean": {"field": "is_active", "value": true} (records where is_active is true).
+
+- number (object): Filters based on numerical fields.
+  - Structure:
+    - "field": The numerical field to filter on.
+    - "operator": Comparison operator (">", "<", ">=", "<=", "=", "!=").
+    - "value": The numerical value to compare.
+  - Example: "number": {"field": "age", "operator": ">=", "value": 18} (records where age is 18 or older).
+
+- text (object): Filters based on text fields.
+  - Structure:
+    - "field": The text field to filter on.
+    - "value": The text value to match.
+  - Example: "text": {"field": "status", "value": "Active"} (records with status "Active").

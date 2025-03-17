@@ -24,7 +24,17 @@ class Disciple_Tools_AI_Endpoints
         register_rest_route(
             $namespace, '/dt-ai-summarize', [
                 'methods'  => 'POST',
-                'callback' => [ $this, 'endpoint' ],
+                'callback' => [ $this, 'summarize' ],
+                'permission_callback' => function( WP_REST_Request $request ) {
+                    return $this->has_permission();
+                },
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/dt-ai-create-filter', [
+                'methods'  => 'POST',
+                'callback' => [ $this, 'create_filter' ],
                 'permission_callback' => function( WP_REST_Request $request ) {
                     return $this->has_permission();
                 },
@@ -32,8 +42,7 @@ class Disciple_Tools_AI_Endpoints
         );
     }
 
-
-    public function endpoint( WP_REST_Request $request ) {
+    public function summarize( WP_REST_Request $request ) {
         // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
         $prompt = $request->get_param( 'prompt' );
 
@@ -45,6 +54,12 @@ class Disciple_Tools_AI_Endpoints
         $llm_model = get_option( 'DT_AI_llm_model' );
 
         $llm_endpoint = $llm_endpoint_root . '/chat/completions';
+
+        dt_write_log('========== AI Endpoint');
+        dt_write_log($llm_endpoint);
+        dt_write_log($llm_api_key);
+        dt_write_log($llm_model);
+        dt_write_log($prompt);
 
         $response = wp_remote_post( $llm_endpoint, [
             'method' => 'POST',
@@ -88,6 +103,52 @@ class Disciple_Tools_AI_Endpoints
             'updated' => $post_updated,
             'summary' => $summary
         ];
+    }
+
+    public function create_filter( WP_REST_Request $request ) {
+        $params = $request->get_params();
+
+        $prompt = $params['prompt'];
+        $post_type = $params['post_type'];
+
+        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
+        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
+        $llm_model = get_option( 'DT_AI_llm_model' );
+        $llm_model_specs_filter = get_option( 'DT_AI_llm_model_specs_filters' );
+        $llm_endpoint = $llm_endpoint_root . '/chat/completions';
+
+        $response = wp_remote_post( $llm_endpoint, [
+            'method' => 'POST',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $llm_api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode( [
+                'model' => $llm_model,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => $llm_model_specs_filter
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ],
+                ],
+                'max_completion_tokens' => 1000,
+                'temperature' => 1,
+                'top_p' => 1,
+            ] ),
+            'timeout' => 30,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return new WP_Error( 'api_error', 'Failed to connect to LLM API', [ 'status' => 500 ] );
+        }
+
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        return $body['choices'][0]['message']['content'];
     }
 
     private static $_instance = null;
