@@ -55,12 +55,6 @@ class Disciple_Tools_AI_Endpoints
 
         $llm_endpoint = $llm_endpoint_root . '/chat/completions';
 
-        dt_write_log('========== AI Endpoint');
-        dt_write_log($llm_endpoint);
-        dt_write_log($llm_api_key);
-        dt_write_log($llm_model);
-        dt_write_log($prompt);
-
         $response = wp_remote_post( $llm_endpoint, [
             'method' => 'POST',
             'headers' => [

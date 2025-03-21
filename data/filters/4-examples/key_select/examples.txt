@@ -1,0 +1,77 @@
+Display all records with no type set. ==//== {"fields": [{"overall_status": ["-closed"]}]}
+Show all records of type user. ==//== {"fields": [{"type": ["user"]},{"overall_status": ["-closed"]}]}
+Show all records of type personal. ==//== {"fields": [{"type": ["personal"]},{"overall_status": ["-closed"]}]}
+Show me all standard records. ==//== {"fields": [{"type": ["access"]},{"overall_status": ["-closed"]}]}
+Display all connection type records. ==//== {"fields": [{"type": ["access_placeholder"]},{"overall_status": ["-closed"]}]}
+Show all private connection types. ==//== {"fields": [{"type": ["placeholder"]},{"overall_status": ["-closed"]}]}
+
+Display all male records. ==//== {"fields": [{"gender": ["male"]},{"overall_status": ["-closed"]}]}
+Show all female contacts. ==//== {"fields": [{"gender": ["female"]},{"overall_status": ["-closed"]}]}
+
+Show all contacts with no ages set. ==//== {"fields": [{"age": ["none"]},{"overall_status": ["-closed"]}]}
+Show records with no ages. ==//== {"fields": [{"age": ["not-set"]},{"overall_status": ["-closed"]}]}
+Show records with ages under 18. ==//== {"fields": [{"age": ["<19"]},{"overall_status": ["-closed"]}]}
+Show contacts with ages under 18 years old. ==//== {"fields": [{"age": ["<19"]},{"overall_status": ["-closed"]}]}
+Show contacts under the age of 18. ==//== {"fields": [{"age": ["<19"]},{"overall_status": ["-closed"]}]}
+Show contacts between the ages of 18 and 25 years old. ==//== {"fields": [{"age": ["<26"]},{"overall_status": ["-closed"]}]}
+Show records with ages between 26 & 40 years old. ==//== {"fields": [{"age": ["<41"]},{"overall_status": ["-closed"]}]}
+Show records with ages over 40 years old. ==//== {"fields": [{"age": [">41"]},{"overall_status": ["-closed"]}]}
+Show all contacts older than 40. ==//== {"fields": [{"age": [">41"]},{"overall_status": ["-closed"]}]}
+
+Show all records with no status set. ==//== {"fields": [{"overall_status": ["none"]}]}
+Show me all records with statuses of none set. ==//== {"fields": [{"overall_status": ["none"]}]}
+Show all new records. ==//== {"fields": [{"overall_status": ["new"]}]}
+Show all records which are not yet ready. ==//== {"fields": [{"overall_status": ["unassignable"]}]}
+Show all records with a status of not ready. ==//== {"fields": [{"overall_status": ["unassignable"]}]}
+Show records with a status of dispatch needed. ==//== {"fields": [{"overall_status": ["unassigned"]}]}
+Show records waiting to be accepted. ==//== {"fields": [{"overall_status": ["assigned"]}]}
+Show all active records. ==//== {"fields": [{"overall_status": ["active"]}]}
+Show all paused records. ==//== {"fields": [{"overall_status": ["paused"]}]}
+Show all archived records. ==//== {"fields": [{"overall_status": ["closed"]}]}
+Show all closed records. ==//== {"fields": [{"overall_status": ["closed"]}]}
+
+Show all seekers. ==//== {"fields": [{"faith_status": ["seeker"]},{"overall_status": ["-closed"]}]}
+Display all contacts who are believers. ==//== {"fields": [{"faith_status": ["believer"]},{"overall_status": ["-closed"]}]}
+Show all leaders. ==//== {"fields": [{"faith_status": ["leader"]},{"overall_status": ["-closed"]}]}
+
+Show all records where contact attempt is still needed ==//== {"fields": [{"seeker_path": ["none"]},{"overall_status": ["-closed"]}]}
+Display records where contact has been attempted ==//== {"fields": [{"seeker_path": ["attempted"]},{"overall_status": ["-closed"]}]}
+Display records where contact has been established ==//== {"fields": [{"seeker_path": ["established"]},{"overall_status": ["-closed"]}]}
+Show records where first meeting has been scheduled ==//== {"fields": [{"seeker_path": ["scheduled"]},{"overall_status": ["-closed"]}]}
+Show contacts who have completed their first meeting ==//== {"fields": [{"seeker_path": ["met"]},{"overall_status": ["-closed"]}]}
+Show contacts having ongoing meetings ==//== {"fields": [{"seeker_path": ["ongoing"]},{"overall_status": ["-closed"]}]}
+Show contacts being coached ==//== {"fields": [{"seeker_path": ["coaching"]},{"overall_status": ["-closed"]}]}
+
+Show all contacts with no valid reason for not being ready. ==//== {"fields": [{"reason_unassignable": ["none"]},{"overall_status": ["-closed"]}]}
+Show all contacts with insufficient information. ==//== {"fields": [{"reason_unassignable": ["insufficient"]},{"overall_status": ["-closed"]}]}
+Display contacts with unknown locations. ==//== {"fields": [{"reason_unassignable": ["location"]},{"overall_status": ["-closed"]}]}
+Display contacts who only want media. ==//== {"fields": [{"reason_unassignable": ["media"]},{"overall_status": ["-closed"]}]}
+Show contacts who are from an outside area. ==//== {"fields": [{"reason_unassignable": ["outside_area"]},{"overall_status": ["-closed"]}]}
+Show contacts who need review. ==//== {"fields": [{"reason_unassignable": ["needs_review"]},{"overall_status": ["-closed"]}]}
+Display contacts waiting for confirmation. ==//== {"fields": [{"reason_unassignable": ["awaiting_confirmation"]},{"overall_status": ["-closed"]}]}
+
+Show contacts with no reason for pause. ==//== {"fields": [{"reason_paused": ["none"]},{"overall_status": ["-closed"]}]}
+Show contacts on vacation. ==//== {"fields": [{"reason_paused": ["vacation"]},{"overall_status": ["-closed"]}]}
+Show contacts not responding. ==//== {"fields": [{"reason_paused": ["not_responding"]},{"overall_status": ["-closed"]}]}
+Show contacts not available. ==//== {"fields": [{"reason_paused": ["not_available"]},{"overall_status": ["-closed"]}]}
+Show contacts with little interest. ==//== {"fields": [{"reason_paused": ["little_interest"]},{"overall_status": ["-closed"]}]}
+Display contacts showing no initiative. ==//== {"fields": [{"reason_paused": ["no_initiative"]},{"overall_status": ["-closed"]}]}
+Display contacts with questionable motives. ==//== {"fields": [{"reason_paused": ["questionable_motives"]},{"overall_status": ["-closed"]}]}
+Display contacts with the ball in their court. ==//== {"fields": [{"reason_paused": ["ball_in_their_court"]},{"overall_status": ["-closed"]}]}
+Display contacts we are waiting to see how they respond. ==//== {"fields": [{"reason_paused": ["wait_and_see"]},{"overall_status": ["-closed"]}]}
+
+Show contacts with no reason for archive. ==//== {"fields": [{"reason_closed": ["none"]},{"overall_status": ["closed"]}]}
+Show contacts with duplication as the reason for closer. ==//== {"fields": [{"reason_closed": ["duplicate"]},{"overall_status": ["closed"]}]}
+Show records with insufficient contact info as the reason for closer. ==//== {"fields": [{"reason_closed": ["insufficient"]},{"overall_status": ["closed"]}]}
+Show records who deny submitting contact request. ==//== {"fields": [{"reason_closed": ["denies_submission"]},{"overall_status": ["closed"]}]}
+Show archived records with hostile as the reason for closure. ==//== {"fields": [{"reason_closed": ["hostile_self_gain"]},{"overall_status": ["closed"]}]}
+Show archived records with arguing or debating as the reason for closure. ==//== {"fields": [{"reason_closed": ["apologetics"]},{"overall_status": ["closed"]}]}
+Show closed records who just wanted media. ==//== {"fields": [{"reason_closed": ["media_only"]},{"overall_status": ["closed"]}]}
+Display closed records who are no longer interested. ==//== {"fields": [{"reason_closed": ["no_longer_interested"]},{"overall_status": ["closed"]}]}
+Display closed records who are no longer responding. ==//== {"fields": [{"reason_closed": ["no_longer_responding"]},{"overall_status": ["closed"]}]}
+Display closed records who are already connected with a church. ==//== {"fields": [{"reason_closed": ["already_connected"]},{"overall_status": ["closed"]}]}
+Display closed records transferred to partner. ==//== {"fields": [{"reason_closed": ["transfer"]},{"overall_status": ["closed"]}]}
+Display closed contacts which were martyred. ==//== {"fields": [{"reason_closed": ["martyred"]},{"overall_status": ["closed"]}]}
+Show closed contacts which have moved. ==//== {"fields": [{"reason_closed": ["moved"]},{"overall_status": ["closed"]}]}
+Show closed contacts resulting from a gdpr request. ==//== {"fields": [{"reason_closed": ["gdpr"]},{"overall_status": ["closed"]}]}
+Display records closed for unknown reasons. ==//== {"fields": [{"reason_closed": ["unknown"]},{"overall_status": ["closed"]}]}

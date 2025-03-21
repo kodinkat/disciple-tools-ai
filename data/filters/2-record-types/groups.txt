@@ -1,0 +1,65 @@
+--- groups mapping details ---
+
+post type key or id: groups
+post type singular label: Group
+post type plural label: Groups
+
+groups post type fields and their associated field-types:
+
+- field-key: name has the label: Name and the field-type: text
+- field-key: record_picture has the label: Picture and the field-type: image
+- field-key: last_modified has the label: Last Modified and the field-type: date
+- field-key: post_date has the label: Creation Date and the field-type: date
+- field-key: favorite has the label: Favorite and the field-type: boolean
+- field-key: tags has the label: Tags and the field-type: tags
+- field-key: follow has the label: Follow and the field-type: multi_select
+- field-key: unfollow has the label: Un-Follow and the field-type: multi_select
+- field-key: tasks has the label: Tasks and the field-type: task
+- field-key: notes has the label: Notes and the field-type: array
+- field-key: location_grid has the label: Locations and the field-type: location
+- field-key: location_grid_meta has the label: Locations or Address and the field-type: location_meta
+- field-key: requires_update has the label: Requires Update and the field-type: boolean
+- field-key: duplicate_data has the label: Duplicates and the field-type: array
+- field-key: group_status has the label: Group Status and the field-type: key_select
+associated options and labels:
+option: active label: Active
+option: inactive label: Inactive
+- field-key: assigned_to has the label: Assigned To and the field-type: user_select
+- field-key: coaches has the label: Group Coach / Church Planter and the field-type: connection
+- field-key: group_type has the label: Group Type and the field-type: key_select
+associated options and labels:
+option: pre-group label: Pre-Group
+option: group label: Group
+option: church label: Church
+option: team label: Team
+- field-key: health_metrics has the label: Church Health and the field-type: multi_select
+associated options and labels:
+option: church_baptism label: Baptism
+option: church_bible label: Bible Study
+option: church_communion label: Communion
+option: church_fellowship label: Fellowship
+option: church_giving label: Giving
+option: church_prayer label: Prayer
+option: church_praise label: Praise
+option: church_sharing label: Sharing the Gospel
+option: church_leaders label: Leaders
+option: church_commitment label: Church Commitment
+- field-key: start_date has the label: Start Date and the field-type: date
+- field-key: church_start_date has the label: Church Start Date and the field-type: date
+- field-key: end_date has the label: End Date and the field-type: date
+- field-key: member_count has the label: Member Count and the field-type: number
+- field-key: members has the label: Member List and the field-type: connection
+- field-key: leaders has the label: Leaders and the field-type: connection
+- field-key: leader_count has the label: Leader Count and the field-type: number
+- field-key: parent_groups has the label: Parent Group and the field-type: connection
+- field-key: peer_groups has the label: Peer Group and the field-type: connection
+- field-key: child_groups has the label: Child Group and the field-type: connection
+- field-key: contact_address has the label: Address and the field-type: communication_channel
+- field-key: four_fields_unbelievers has the label: Unbelievers and the field-type: text
+- field-key: four_fields_believers has the label: Believers and the field-type: text
+- field-key: four_fields_accountable has the label: Accountable and the field-type: text
+- field-key: four_fields_church_commitment has the label: Church Commitment and the field-type: text
+- field-key: four_fields_multiplying has the label: Multiplying and the field-type: text
+- field-key: people_groups has the label: People Groups and the field-type: connection
+
+

@@ -1,0 +1,14 @@
+Show all contacts baptised between 2025-03-01 and 2025-03-31. ==//== {"fields": [{"baptism_date": {"start": "2025-03-01", "end": "2025-03-31"}},{"overall_status": ["-closed"]}]}
+Show records with baptism dates after 2025-02-10. ==//== {"fields": [{"baptism_date": {"start": "2025-02-10"}},{"overall_status": ["-closed"]}]}
+Show contacts who were baptised before 2025-03-19. ==//== {"fields": [{"baptism_date": {"end": "2025-03-19"}},{"overall_status": ["-closed"]}]}
+Show all records with no baptism dates. ==//== {"fields": [{"overall_status": ["-closed"]}]}
+
+Show all records created between 2025-03-01 and 2025-03-31. ==//== {"fields": [{"post_date": {"start": "2025-03-01", "end": "2025-03-31"}},{"overall_status": ["-closed"]}]}
+Show records with creation dates after 2025-02-10. ==//== {"fields": [{"post_date": {"start": "2025-02-10"}},{"overall_status": ["-closed"]}]}
+Show records who were created before 2025-03-19. ==//== {"fields": [{"post_date": {"end": "2025-03-19"}},{"overall_status": ["-closed"]}]}
+Show all records with no creation  dates. ==//== {"fields": [{"overall_status": ["-closed"]}]}
+
+Show all records last modified between 2025-03-01 and 2025-03-31. ==//== {"fields": [{"last_modified": {"start": "2025-03-01", "end": "2025-03-31"}},{"overall_status": ["-closed"]}]}
+Show records modified after 2025-02-10. ==//== {"fields": [{"last_modified": {"start": "2025-02-10"}},{"overall_status": ["-closed"]}]}
+Show records who were modified before 2025-03-19. ==//== {"fields": [{"last_modified": {"end": "2025-03-19"}},{"overall_status": ["-closed"]}]}
+Show all records ignoring last modification dates. ==//== {"fields": [{"overall_status": ["-closed"]}]}

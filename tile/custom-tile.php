@@ -258,11 +258,18 @@ class Disciple_Tools_AI_Tile
                             })
                             .then(response => response.json())
                             .then(response => {
-                                response = JSON.parse(response);
-
                                 console.log(response);
 
                                 create_filter_spinner.fadeOut('fast');
+
+                                /**
+                                 * Ensure to safeguard against valid json responses; which also contain
+                                 * free form text explanations and unescaped chars.
+                                 */
+
+                                response = response.split(/\n/g)[0].replaceAll('\"', '"').replaceAll('\\n', '');
+                                response = JSON.parse(response);
+                                console.log(response);
 
                                 /**
                                  * Assuming valid fields have been generated and required shared
@@ -314,6 +321,7 @@ class Disciple_Tools_AI_Tile
                                 }
                             })
                             .catch(error => {
+                                create_filter_spinner.fadeOut('fast');
                                 console.error('Error:', error);
                             });
                         }

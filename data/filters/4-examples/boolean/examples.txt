@@ -1,0 +1,6 @@
+Show all records with no favorite set. ==//== {"fields": [{"overall_status": ["-closed"]}]}
+Display favourite records. ==//== {"fields": [{"favorite": ["1"]},{"overall_status": ["-closed"]}]}
+Show non favourite records. ==//== {"fields": [{"favorite": ["0"]},{"overall_status": ["-closed"]}]}
+
+Show all records requiring updates. ==//== {"fields": [{"requires_update": ["1"]},{"overall_status": ["-closed"]}]}
+Display contacts no longer requiring updates. ==//== {"fields": [{"requires_update": ["0"]},{"overall_status": ["-closed"]}]}

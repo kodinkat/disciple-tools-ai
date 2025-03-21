@@ -1,0 +1,156 @@
+--- contacts mapping details ---
+
+post type key or id: contacts
+post type singular label: Contact
+post type plural label: Contacts
+
+contacts post type fields and their associated field-types:
+
+- field-key: name has the label: Name and the field-type: text
+- field-key: record_picture has the label: Picture and the field-type: image
+- field-key: last_modified has the label: Last Modified and the field-type: date
+- field-key: post_date has the label: Creation Date and the field-type: date
+- field-key: favorite has the label: Favorite and the field-type: boolean
+- field-key: tags has the label: Tags and the field-type: tags
+- field-key: follow has the label: Follow and the field-type: multi_select
+- field-key: unfollow has the label: Un-Follow and the field-type: multi_select
+- field-key: tasks has the label: Tasks and the field-type: task
+- field-key: notes has the label: Notes and the field-type: array
+- field-key: location_grid has the label: Locations and the field-type: location
+- field-key: location_grid_meta has the label: Locations or Address and the field-type: location_meta
+- field-key: nickname has the label: Nickname and the field-type: text
+- field-key: type has the label: Contact Type and the field-type: key_select
+associated options and labels:
+option: user label: User
+option: personal label: Private Contact
+option: access label: Standard Contact
+option: access_placeholder label: Connection
+option: placeholder label: Private Connection
+- field-key: duplicate_data has the label: Duplicates and the field-type: array
+- field-key: duplicate_of has the label: Duplicate of and the field-type: text
+- field-key: languages has the label: Languages and the field-type: multi_select
+associated options and labels:
+option: en label: English
+option: fr label: French
+option: es label: Spanish
+- field-key: contact_phone has the label: Phone and the field-type: communication_channel
+- field-key: contact_email has the label: Email and the field-type: communication_channel
+- field-key: contact_address has the label: Address and the field-type: communication_channel
+- field-key: contact_facebook has the label: Facebook and the field-type: communication_channel
+- field-key: contact_other has the label: Other Social Links and the field-type: communication_channel
+- field-key: relation has the label: Connections to other Contacts and the field-type: connection
+- field-key: gender has the label: Gender and the field-type: key_select
+associated options and labels:
+option: male label: Male
+option: female label: Female
+- field-key: age has the label: Age and the field-type: key_select
+associated options and labels:
+option: not-set label: 
+option: <19 label: Under 18 years old
+option: <26 label: 18-25 years old
+option: <41 label: 26-40 years old
+option: >41 label: Over 40 years old
+- field-key: requires_update has the label: Requires Update and the field-type: boolean
+- field-key: overall_status has the label: Contact Status and the field-type: key_select
+associated options and labels:
+option: new label: New Contact
+option: unassignable label: Not Ready
+option: unassigned label: Dispatch Needed
+option: assigned label: Waiting to be accepted
+option: active label: Active
+option: paused label: Paused
+option: closed label: Archived
+- field-key: assigned_to has the label: Assigned To and the field-type: user_select
+- field-key: subassigned has the label: Sub-assigned to and the field-type: connection
+- field-key: subassigned_on has the label: Sub-assigned on other Contacts and the field-type: connection
+- field-key: sources has the label: Sources and the field-type: multi_select
+associated options and labels:
+option: personal label: Personal
+option: web label: Web
+option: transfer label: Transfer
+- field-key: milestones has the label: Faith Milestones and the field-type: multi_select
+associated options and labels:
+option: milestone_has_bible label: Has Bible
+option: milestone_reading_bible label: Reading Bible
+option: milestone_belief label: States Belief
+option: milestone_can_share label: Can Share Gospel/Testimony
+option: milestone_sharing label: Sharing Gospel/Testimony
+option: milestone_baptized label: Baptized
+option: milestone_baptizing label: Baptizing
+option: milestone_in_group label: In Church/Group
+option: milestone_planting label: Starting Churches
+- field-key: faith_status has the label: Faith Status and the field-type: key_select
+associated options and labels:
+option: seeker label: Seeker
+option: believer label: Believer
+option: leader label: Leader
+- field-key: coaching has the label: Is Coaching and the field-type: connection
+- field-key: coached_by has the label: Coached by and the field-type: connection
+- field-key: baptism_date has the label: Baptism Date and the field-type: date
+- field-key: baptism_generation has the label: Baptism Generation and the field-type: number
+- field-key: baptized_by has the label: Baptized by and the field-type: connection
+- field-key: baptized has the label: Baptized and the field-type: connection
+- field-key: groups has the label: Groups and the field-type: connection
+- field-key: group_leader has the label: Leader of Group and the field-type: connection
+- field-key: group_coach has the label: Coach of Group and the field-type: connection
+- field-key: people_groups has the label: People Groups and the field-type: connection
+- field-key: ai_summary has the label: Summary and the field-type: textarea
+- field-key: starter_app_page_magic_key has the label: Starter App and the field-type: hash
+- field-key: starter_app_map_magic_key has the label: Starter App Map and the field-type: hash
+- field-key: corresponds_to_user has the label: Corresponds to user and the field-type: number
+- field-key: corresponds_to_user_name has the label: Corresponds to user_name and the field-type: text
+- field-key: seeker_path has the label: Seeker Path and the field-type: key_select
+associated options and labels:
+option: none label: Contact Attempt Needed
+option: attempted label: Contact Attempted
+option: established label: Contact Established
+option: scheduled label: First Meeting Scheduled
+option: met label: First Meeting Complete
+option: ongoing label: Ongoing Meetings
+option: coaching label: Being Coached
+- field-key: reason_unassignable has the label: Reason Not Ready and the field-type: key_select
+associated options and labels:
+option: none label: 
+option: insufficient label: Insufficient Contact Information
+option: location label: Unknown Location
+option: media label: Only wants media
+option: outside_area label: Outside Area
+option: needs_review label: Needs Review
+option: awaiting_confirmation label: Waiting for Confirmation
+- field-key: reason_paused has the label: Reason Paused and the field-type: key_select
+associated options and labels:
+option: none label: 
+option: vacation label: Contact on vacation
+option: not_responding label: Contact not responding
+option: not_available label: Contact not available
+option: little_interest label: Contact has little interest/hunger
+option: no_initiative label: Contact shows no initiative
+option: questionable_motives label: Contact has questionable motives
+option: ball_in_their_court label: Ball is in the contact's court
+option: wait_and_see label: We want to see if/how the contact responds to automated text messages
+- field-key: reason_closed has the label: Reason Archived and the field-type: key_select
+associated options and labels:
+option: none label: 
+option: duplicate label: Duplicate
+option: insufficient label: Insufficient contact info
+option: denies_submission label: Denies submitting contact request
+option: hostile_self_gain label: Hostile, playing games or self gain
+option: apologetics label: Only wants to argue or debate
+option: media_only label: Just wanted media or book
+option: no_longer_interested label: No longer interested
+option: no_longer_responding label: No longer responding
+option: already_connected label: Already in church or connected with others
+option: transfer label: Transferred contact to partner
+option: martyred label: Martyred
+option: moved label: Moved or relocated
+option: gdpr label: GDPR request
+option: unknown label: Unknown
+- field-key: accepted has the label: Accepted and the field-type: boolean
+- field-key: campaigns has the label: Campaigns and the field-type: tags
+- field-key: quick_button_no_answer has the label: Contact Attempted and the field-type: number
+- field-key: quick_button_contact_established has the label: Contact Established and the field-type: number
+- field-key: quick_button_meeting_scheduled has the label: Meeting Scheduled and the field-type: number
+- field-key: quick_button_meeting_complete has the label: Meeting Complete and the field-type: number
+- field-key: quick_button_no_show has the label: Meeting No-show and the field-type: number
+
+

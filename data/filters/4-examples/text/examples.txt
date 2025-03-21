@@ -1,0 +1,7 @@
+Show all records with any name. ==//== {"fields": [{"name": ["*"]},{"overall_status": ["-closed"]}]}
+Show all contacts called Bob. ==//== {"fields": [{"name": ["Bob"]},{"overall_status": ["-closed"]}]}
+Display records not containing the name Frank. ==//== {"fields": [{"name": ["-Frank"]},{"overall_status": ["-closed"]}]}
+
+Show all records with any nickname. ==//== {"fields": [{"nickname": ["*"]},{"overall_status": ["-closed"]}]}
+Show all contacts with Sally as a nickname. ==//== {"fields": [{"nickname": ["Sally"]},{"overall_status": ["-closed"]}]}
+Display records not containing the nickname Abdul. ==//== {"fields": [{"nickname": ["-Abdul"]},{"overall_status": ["-closed"]}]}

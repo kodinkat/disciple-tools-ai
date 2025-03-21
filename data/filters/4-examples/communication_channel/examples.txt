@@ -1,0 +1,5 @@
+Show all records with 1234 in their phone number. ==//== {"fields": [{"contact_phone": ["1234"]},{"overall_status": ["-closed"]}]}
+
+Show all contacts which do not contain test.com in their email. ==//== {"fields": [{"contact_email": ["-test.com"]},{"overall_status": ["-closed"]}]}
+
+Show any records with a facebook entry. ==//== {"fields": [{"contact_facebook": ["*"]},{"overall_status": ["-closed"]}]}
