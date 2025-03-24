@@ -197,18 +197,56 @@ class Disciple_Tools_AI_Tile
                         searchUsersPromise = window.API.search_users(query);
 
                         searchUsersPromise
-                            .then((responseData) => {
+                            .then((userResponse) => {
 
                                 let data = [];
-                                responseData.forEach((user) => {
-                                    data.push({
-                                        id: user.ID,
-                                        name: user.name,
-                                        type: settings.post_type,
-                                        avatar: user.avatar,
+
+                                // Search location grids by name.
+                                window.API.search_location_grid_by_name(query)
+                                .then((locationResponse) => {
+
+                                    // Capture users.
+                                    userResponse.forEach((user) => {
+                                        data.push({
+                                            id: user.ID,
+                                            name: user.name,
+                                            type: settings.post_type,
+                                            avatar: user.avatar
+                                        });
                                     });
+
+                                    // Capture locations.
+                                    locationResponse.location_grid.forEach((location) => {
+                                        data.push({
+                                            id: location.ID,
+                                            name: location.name,
+                                            type: settings.post_type,
+                                            avatar: null
+                                        });
+                                    });
+
+                                    // Sort data array entries by object name.
+                                    data.sort((a, b) => {
+                                        const aName = a.name.toUpperCase();
+                                        const bName = b.name.toUpperCase();
+
+                                        if (aName < bName) {
+                                            return -1;
+
+                                        } else if (aName > bName) {
+                                            return 1;
+
+                                        } else {
+                                            return 0;
+                                        }
+                                    });
+
                                     callback.call(this, data);
+                                })
+                                .catch((err) => {
+                                    console.error(err);
                                 });
+
                             })
                             .catch((err) => {
                                 console.error(err);
@@ -302,8 +340,6 @@ class Disciple_Tools_AI_Tile
                                             }
                                         });
                                     }
-
-                                    console.log(labels);
 
                                     /**
                                      * Proceed with Custom AI Filter creation and list refresh.
