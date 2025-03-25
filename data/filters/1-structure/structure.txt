@@ -66,6 +66,9 @@ The filter object should be a JSON structure with the following possible fields:
     - get contacts that have the 'Has Bible' milestone but not the 'Reading Bible' milestone.
       - { fields: [ { milestones: [ 'milestone_has_bible', '-milestone_reading_bible' ] } ] }
 
+    - get contacts that have both 'Has Bible' and 'Reading Bible' milestones.
+      - { "fields": [ { "milestones": [ "milestone_has_bible" ] , { "milestones": [ "milestone_reading_bible" ] } ] } ] }
+
 
 - connection
   - An array data type.

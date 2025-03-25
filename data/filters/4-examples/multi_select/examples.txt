@@ -12,3 +12,6 @@ Show contacts who can share the Gospel and their testimony, but are not. ==//== 
 Show records with a baptized milestone. ==//== {"fields": [{"milestones": ["milestone_baptized"]},{"overall_status": ["-closed"]}]}
 Show records with a Baptizing milestone. ==//== {"fields": [{"milestones": ["milestone_baptizing"]},{"overall_status": ["-closed"]}]}
 Show contacts in a church group or starting a church. ==//== {"fields": [{"milestones": ["milestone_in_group", "milestone_planting"]},{"overall_status": ["-closed"]}]}
+
+Show contacts with both active and paused status. ==//== {"fields": [ { "overall_status": [ "active" ] }, { "overall_status": [ "paused"] } ] }
+Show contacts with both Pizza and Onion as fav Sandwhich. ==//== {"fields": [ { "sandwhich": [ "Pizza" ] }, { "sandwhich": [ "Onion"] } ] }

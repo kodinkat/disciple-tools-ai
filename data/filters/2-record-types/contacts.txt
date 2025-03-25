@@ -97,6 +97,7 @@ option: leader label: Leader
 - field-key: ai_summary has the label: Summary and the field-type: textarea
 - field-key: starter_app_page_magic_key has the label: Starter App and the field-type: hash
 - field-key: starter_app_map_magic_key has the label: Starter App Map and the field-type: hash
+- field-key: share_app_ocf_magic_key has the label: Share App and the field-type: hash
 - field-key: corresponds_to_user has the label: Corresponds to user and the field-type: number
 - field-key: corresponds_to_user_name has the label: Corresponds to user_name and the field-type: text
 - field-key: seeker_path has the label: Seeker Path and the field-type: key_select
@@ -152,5 +153,9 @@ option: unknown label: Unknown
 - field-key: quick_button_meeting_scheduled has the label: Meeting Scheduled and the field-type: number
 - field-key: quick_button_meeting_complete has the label: Meeting Complete and the field-type: number
 - field-key: quick_button_no_show has the label: Meeting No-show and the field-type: number
+- field-key: my_fav_sandwhiches has the label: My fav sandwhiches and the field-type: multi_select
+associated options and labels:
+option: pizza label: Pizza
+option: onion label: Onion
 
 
