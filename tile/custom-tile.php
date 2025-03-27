@@ -160,7 +160,7 @@ class Disciple_Tools_AI_Tile
         <?php }
     }
 
-    public function dt_ai_action_bar_buttons( $post_type ):void {
+    public function dt_ai_action_bar_buttons( $post_type ): void {
         $this->dt_site_scripts();
         ?>
         <input id="dt_ai_filter_prompt" name="dt_ai_filter_prompt" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" />
@@ -177,7 +177,7 @@ class Disciple_Tools_AI_Tile
                     'root' => esc_url_raw( rest_url() ),
                     'nonce' => wp_create_nonce( 'wp_rest' ),
                     'translations' => [
-                        'custom_filter' => __('Custom AI Filter', 'disciple-tools-ai')
+                        'custom_filter' => __( 'Custom AI Filter', 'disciple-tools-ai' )
                     ]
                 ]) ?>][0]
 

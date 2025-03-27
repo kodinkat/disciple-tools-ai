@@ -186,16 +186,13 @@ class Disciple_Tools_AI_Endpoints
                     if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
 
                         // Extract inferred filter into final response and stop retry attempts.
-                        $response = json_decode( str_replace( ['\n', '\r'], '', trim( $inferred_response['choices'][0]['message']['content'] ) ), true );
+                        $response = json_decode( str_replace( [ '\n', '\r' ], '', trim( $inferred_response['choices'][0]['message']['content'] ) ), true );
                         if ( !empty( $response ) ) {
                             $attempts = 2;
                         }
-
                     }
-
                 }
-
-            } catch (Exception $e) {
+            } catch ( Exception $e ) {
                 dt_write_log( $e->getMessage() );
             }
         }
