@@ -1,0 +1,7 @@
+Show all records with any name. ==//== {"fields": [{"name": ["*"]}]}
+Show all contacts called Bob. ==//== {"fields": [{"name": ["Bob"]}]}
+Display records not containing the name Frank. ==//== {"fields": [{"name": ["-Frank"]}]}
+
+Show all records with any nickname. ==//== {"fields": [{"nickname": ["*"]}]}
+Show all contacts with Sally as a nickname. ==//== {"fields": [{"nickname": ["Sally"]}]}
+Display records not containing the nickname Abdul. ==//== {"fields": [{"nickname": ["-Abdul"]}]}

@@ -1,0 +1,14 @@
+Show all contacts with English as the main language. ==//== {"fields": [{"languages": ["en"]}]}
+Show records with French or Spanish as a language. ==//== {"fields": [{"languages": ["fr", "es"]}]}
+
+Show records with a personal source. ==//== {"fields": [{"sources": ["personal"]}]}
+Show contacts with a web source. ==//== {"fields": [{"sources": ["web"]}]}
+Show transferred contacts. ==//== {"fields": [{"sources": ["transfer"]}]}
+
+Show contacts who have a bible. ==//== {"fields": [{"milestones": ["milestone_has_bible"]}]}
+Show contacts reading the bible. ==//== {"fields": [{"milestones": ["milestone_reading_bible"]}]}
+Show contacts who have stated belief. ==//== {"fields": [{"milestones": ["milestone_belief"]}]}
+Show contacts who can share the Gospel and their testimony, but are not. ==//== {"fields": [{"milestones": ["milestone_can_share", "-milestone_sharing"]}]}
+Show records with a baptized milestone. ==//== {"fields": [{"milestones": ["milestone_baptized"]}]}
+Show records with a Baptizing milestone. ==//== {"fields": [{"milestones": ["milestone_baptizing"]}]}
+Show contacts in a church group or starting a church. ==//== {"fields": [{"milestones": ["milestone_in_group", "milestone_planting"]}]}

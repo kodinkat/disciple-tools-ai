@@ -1,0 +1,6 @@
+Show all records with no favorite set. ==//== {"fields": []}
+Display favourite records. ==//== {"fields": [{"favorite": ["1"]}]}
+Show non favourite records. ==//== {"fields": [{"favorite": ["0"]}]}
+
+Show all records requiring updates. ==//== {"fields": [{"requires_update": ["1"]}]}
+Display contacts no longer requiring updates. ==//== {"fields": [{"requires_update": ["0"]}]}

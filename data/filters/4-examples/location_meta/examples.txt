@@ -1,3 +1,0 @@
-Show me all contacts based in @[Spain](100074576). ==//== {"fields": [{"location_grid": ["100074576"]},{"overall_status": ["-closed"]}]}
-List all contacts in @[Akrotiri and Dhekelia](100380048) ==//== {"fields": [{"location_grid": ["100380048"]},{"overall_status": ["-closed"]}]}
-Show all contacts in @[Morocco](100241761) or @[Gibraltar](100131318) ==//== {"fields": [{"location_grid": ["100241761","100131318"]},{"overall_status": ["-closed"]}]}
