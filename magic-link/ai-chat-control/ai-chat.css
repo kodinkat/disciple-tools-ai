@@ -1,0 +1,250 @@
+body {
+    background-color: white !important;
+}
+
+#wrapper {
+    padding: 0 0.5em;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+#magic-link-wrapper {
+    padding: 1em;
+}
+
+#content {
+    padding: 0 0.5em;
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1em;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 1em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.user-message, .system-message {
+    max-width: 80%;
+    margin-bottom: 0.8em;
+    padding: 0.6em 1em;
+    border-radius: 12px;
+    word-wrap: break-word;
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: #0084ff;
+    color: white;
+}
+
+.system-message {
+    align-self: flex-start;
+    background-color: #e9e9eb;
+    color: #333;
+}
+
+.message-content {
+    padding: 0.2em;
+}
+
+.voice-input-container {
+    margin-bottom: 2em;
+}
+
+.chat-input-container {
+    padding: 0.5em 0;
+}
+
+.input-group {
+    display: flex;
+    width: 100%;
+}
+
+.input-group-field {
+    flex: 1;
+    padding: 0.5em;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 1.1em;
+}
+
+.input-group-button .button {
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    padding: 0.5em 1em;
+}
+
+.input-group-button .button:hover {
+    background-color: #45a049;
+}
+
+#voice-btn {
+    background-color: #607D8B;
+    border-radius: 4px 0 0 4px;
+    margin-right: 0;
+}
+
+#voice-btn:hover {
+    background-color: #546E7A;
+}
+
+#submit-btn {
+    border-radius: 0 4px 4px 0;
+}
+
+#voice-btn.listening {
+    background-color: #f44336;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Contact selection styles */
+.contact-selection-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+    width: 100%;
+}
+
+.contact-select-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.3s;
+    margin-bottom: 5px;
+    width: 100%;
+    display: block;
+    font-size: 1.1em;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.contact-select-btn:hover {
+    background-color: #45a049;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.contact-selection-container {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+/* Message wrapper and button styles */
+.message-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8em;
+    width: 100%;
+    gap: 8px;
+}
+
+/* Keep message bubbles aligned correctly within wrapper */
+.message-wrapper .user-message {
+    margin-left: auto;
+    margin-bottom: 0;
+}
+
+.message-wrapper .system-message {
+    margin-bottom: 0;
+}
+
+.contact-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 1em;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.contact-link-btn:hover {
+    background-color: #45a049;
+    color: white;
+    text-decoration: none;
+    transform: scale(1.1);
+}
+
+.contact-link-btn i {
+    margin: 0;
+}
+
+/* Remove old styles that are no longer needed */
+.message-actions {
+    display: none;
+}
+
+.user-message .message-actions,
+.system-message:has(.message-actions), 
+.user-message:has(.message-actions) {
+    display: none;
+}
+
+/* Responsive adjustments for mobile devices */
+@media screen and (max-width: 600px) {
+    #wrapper {
+        padding: 0.5em;
+    }
+    
+    #chat-container {
+        padding: 0.7em;
+        max-height: 350px;
+    }
+    
+    .user-message, .system-message {
+        max-width: 85%;
+        padding: 0.5em 0.8em;
+        font-size: 0.95em;
+    }
+    
+    .contact-selection-container {
+        padding: 8px;
+    }
+    
+    .contact-select-btn {
+        padding: 8px 10px;
+        font-size: 1em;
+    }
+    
+    .contact-link-btn {
+        height: 28px;
+        width: 28px;
+        min-width: 28px;
+    }
+}

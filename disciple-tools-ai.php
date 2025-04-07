@@ -146,7 +146,7 @@ class Disciple_Tools_AI {
         require_once( 'magic-link/magic-link-login-user-app.php' );
         require_once( 'magic-link/magic-link-non-object.php' );
         require_once( 'magic-link/magic-link-map.php' );
-//        require_once( 'magic-link/magic-link-home.php' );
+        require_once( 'magic-link/ai-chat-control/ai-chat.php' );
         require_once( 'magic-link/magic-link-ai-list-app.php' );
 
         /**
