@@ -24,7 +24,17 @@ class Disciple_Tools_AI_Endpoints
         register_rest_route(
             $namespace, '/dt-ai-summarize', [
                 'methods'  => 'POST',
-                'callback' => [ $this, 'endpoint' ],
+                'callback' => [ $this, 'summarize' ],
+                'permission_callback' => function( WP_REST_Request $request ) {
+                    return $this->has_permission();
+                },
+            ]
+        );
+
+        register_rest_route(
+            $namespace, '/dt-ai-create-filter', [
+                'methods'  => 'POST',
+                'callback' => [ $this, 'create_filter' ],
                 'permission_callback' => function( WP_REST_Request $request ) {
                     return $this->has_permission();
                 },
@@ -32,8 +42,7 @@ class Disciple_Tools_AI_Endpoints
         );
     }
 
-
-    public function endpoint( WP_REST_Request $request ) {
+    public function summarize( WP_REST_Request $request ) {
         // Get the prompt from the request and make a call to the OpenAI API to summarize and return the response
         $prompt = $request->get_param( 'prompt' );
 
@@ -88,6 +97,15 @@ class Disciple_Tools_AI_Endpoints
             'updated' => $post_updated,
             'summary' => $summary
         ];
+    }
+
+    public function create_filter( WP_REST_Request $request ): array {
+        $params = $request->get_params();
+
+        $prompt = $params['prompt'];
+        $post_type = $params['post_type'];
+
+        return Disciple_Tools_AI_API::handle_create_filter_request( $prompt, $post_type );
     }
 
     private static $_instance = null;

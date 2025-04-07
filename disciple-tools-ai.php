@@ -94,6 +94,12 @@ class Disciple_Tools_AI {
 
     private function __construct() {
         $is_rest = dt_is_rest();
+
+        /**
+         * Load useful plugin AI API.
+         */
+        require_once( 'lib/disciple-tools-ai-api.php' );
+
         /**
          * @todo Decide if you want to use the REST API example
          * To remove: delete this following line and remove the folder named /rest-api
@@ -135,12 +141,13 @@ class Disciple_Tools_AI {
          * @todo Decide if you want to create a magic link
          * To remove: delete the line below and remove the folder named /magic-link
          */
-        require_once( 'magic-link/post-type-magic-link/magic-link-post-type.php' );
-        require_once( 'magic-link/magic-link-user-app.php' );
-        require_once( 'magic-link/magic-link-login-user-app.php' );
-        require_once( 'magic-link/magic-link-non-object.php' );
-        require_once( 'magic-link/magic-link-map.php' );
+//        require_once( 'magic-link/post-type-magic-link/magic-link-post-type.php' );
+//        require_once( 'magic-link/magic-link-user-app.php' );
+//        require_once( 'magic-link/magic-link-login-user-app.php' );
+//        require_once( 'magic-link/magic-link-non-object.php' );
+//        require_once( 'magic-link/magic-link-map.php' );
         require_once( 'magic-link/ai-chat-control/ai-chat.php' );
+        require_once( 'magic-link/magic-link-ai-list-app.php' );
 
         /**
          * @todo Decide if you want to add a custom admin page in the admin area
@@ -169,6 +176,11 @@ class Disciple_Tools_AI {
          * To remove: delete the line below and remove the folder named /workflows
          */
         require_once( 'workflows/workflows.php' );
+
+        /**
+         * Build required datasets.
+         */
+        require_once( 'data/data.php' );
     }
 
     /**

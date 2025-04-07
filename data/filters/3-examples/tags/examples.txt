@@ -1,0 +1,3 @@
+Show all records with ministry tags. ==//== {"fields": [{"tags": ["ministry"]}]}
+
+Show all contacts not part of the ABC campaign. ==//== {"fields": [{"campaigns": ["-ABC"]}]}
