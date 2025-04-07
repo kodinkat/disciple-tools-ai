@@ -94,7 +94,6 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         add_filter( 'dt_magic_url_base_allowed_css', [ $this, 'dt_magic_url_base_allowed_css' ], 10, 1 );
         add_filter( 'dt_magic_url_base_allowed_js', [ $this, 'dt_magic_url_base_allowed_js' ], 10, 1 );
         add_action( 'wp_enqueue_scripts', [ $this, 'wp_enqueue_scripts' ], 100 );
-
     }
 
     public function wp_enqueue_scripts() {
@@ -229,7 +228,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         <main>
             <div id="list" class="is-expanded">
                 <header>
-                    <h1><?php esc_attr_e( $this->page_title ); ?></h1>
+                    <h1><?php echo esc_html( $this->page_title ); ?></h1>
                 </header>
 
                 <div id="search-filter">
@@ -392,7 +391,6 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                 ],
             ]
         );
-
     }
 
     public function create_filter( WP_REST_Request $request ) {
