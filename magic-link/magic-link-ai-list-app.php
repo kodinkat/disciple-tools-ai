@@ -63,7 +63,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                 ]
             ],
             'icon'           => 'mdi mdi-cog-outline',
-            'show_in_home_apps' => false
+            'show_in_home_apps' => true
         ];
 
         $this->meta_key = $this->root . '_' . $this->type . '_magic_key';
