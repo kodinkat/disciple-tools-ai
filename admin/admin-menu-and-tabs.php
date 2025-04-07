@@ -166,7 +166,7 @@ class Disciple_Tools_AI_Tab_General {
                         Your LLM API Key
                     </td>
                     <td>
-                        <input type="text" name="llm-api-key" placeholder="" value="<?php echo esc_attr( $llm_api_key ) ?>" style="width: 100%">
+                        <input type="password" name="llm-api-key" placeholder="" value="<?php echo esc_attr( $llm_api_key ) ?>" style="width: 100%">
                     </td>
                 </tr>
                 <tr>
