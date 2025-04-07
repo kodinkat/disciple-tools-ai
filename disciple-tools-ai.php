@@ -94,6 +94,12 @@ class Disciple_Tools_AI {
 
     private function __construct() {
         $is_rest = dt_is_rest();
+
+        /**
+         * Load useful plugin AI API.
+         */
+        require_once( 'lib/disciple-tools-ai-api.php' );
+
         /**
          * @todo Decide if you want to use the REST API example
          * To remove: delete this following line and remove the folder named /rest-api
@@ -141,6 +147,7 @@ class Disciple_Tools_AI {
         require_once( 'magic-link/magic-link-non-object.php' );
         require_once( 'magic-link/magic-link-map.php' );
 //        require_once( 'magic-link/magic-link-home.php' );
+        require_once( 'magic-link/magic-link-ai-list-app.php' );
 
         /**
          * @todo Decide if you want to add a custom admin page in the admin area

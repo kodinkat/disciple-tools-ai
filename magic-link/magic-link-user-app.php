@@ -113,7 +113,7 @@ class Disciple_Tools_AI_Magic_User_App extends DT_Magic_Url_Base {
             'url_base'         => $this->root . '/' . $this->type,
             'label'            => $this->page_title,
             'description'      => $this->page_description,
-            'settings_display' => true
+            'settings_display' => false
         ];
 
         return $apps_list;
