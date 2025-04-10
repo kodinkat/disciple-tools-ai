@@ -19,9 +19,8 @@ class Disciple_Tools_AI_Tile
     }
 
     public function dt_site_scripts(): void {
-        dt_theme_enqueue_script( 'jquery-mentions', 'dt-core/dependencies/jquery-mentions-input/jquery.mentionsInput.min.js', array( 'jquery' ), true );
-        dt_theme_enqueue_script( 'jquery-mentions-elastic', 'dt-core/dependencies/jquery-mentions-input/lib/jquery.elastic.min.js', array( 'jquery' ), true );
-        dt_theme_enqueue_style( 'jquery-mentions-css', 'dt-core/dependencies/jquery-mentions-input/jquery.mentionsInput.css', array() );
+        dt_theme_enqueue_script( 'tribute-js', 'dt-core/dependencies/tributejs/dist/tribute.min.js', array(), true );
+        dt_theme_enqueue_style( 'tribute-css', 'dt-core/dependencies/tributejs/dist/tribute.css', array() );
     }
 
     /**
@@ -192,29 +191,24 @@ class Disciple_Tools_AI_Tile
                  * Proceed with AI filter prompt setup.
                  */
 
-                let searchUsersPromise = null;
-                $('#dt_ai_filter_prompt').mentionsInput({
-                    onDataRequest: (mode, query, callback) => {
-                        if (searchUsersPromise && window.lodash.get(searchUsersPromise, 'readyState') !== 4) {
-                            searchUsersPromise.abort('abortPromise');
-                        }
+                const tribute = new Tribute({
+                    triggerKeys: ['@'],
+                    values: (text, callback) => {
+                        
+                        window.API.search_users(text)
+                        .then((userResponse) => {
 
-                        searchUsersPromise = window.API.search_users(query);
+                            let data = [];
 
-                        searchUsersPromise
-                            .then((userResponse) => {
-
-                                let data = [];
-
-                                // Search location grids by name.
-                                window.API.search_location_grid_by_name(query)
+                            // Search location grids by name.
+                            window.API.search_location_grid_by_name(text)
                                 .then((locationResponse) => {
 
                                     // Capture users.
                                     userResponse.forEach((user) => {
                                         data.push({
                                             id: user.ID,
-                                            name: user.name,
+                                            name: user.name || "", // Ensure name is always a string
                                             type: settings.post_type,
                                             avatar: user.avatar
                                         });
@@ -224,11 +218,14 @@ class Disciple_Tools_AI_Tile
                                     locationResponse.location_grid.forEach((location) => {
                                         data.push({
                                             id: location.ID,
-                                            name: location.name,
+                                            name: location.name || "", // Ensure name is always a string
                                             type: settings.post_type,
                                             avatar: null
                                         });
                                     });
+
+                                    // Filter out any items with undefined, null or non-string names
+                                    data = data.filter(item => typeof item.name === 'string');
 
                                     // Sort data array entries by object name.
                                     data.sort((a, b) => {
@@ -246,163 +243,162 @@ class Disciple_Tools_AI_Tile
                                         }
                                     });
 
-                                    callback.call(this, data);
+                                    callback(data);
                                 })
                                 .catch((err) => {
                                     console.error(err);
+                                    callback([]); // Return empty array on error
                                 });
-
-                            })
-                            .catch((err) => {
-                                console.error(err);
-                            });
+                        })
+                        .catch((err) => {
+                            console.error(err);
+                            callback([]); // Return empty array on error
+                        });
                     },
-                    templates: {
-                        mentionItemSyntax: function (data) {
-                            return `[${data.value}](${data.id})`;
-                        }
+                    menuItemTemplate: function (item) {
+                        if (!item || !item.original) return '';
+                        return `<div class="user-item">
+                            ${item.original.avatar ? `<img src="${item.original.avatar}">` : ''}
+                            <span class="name">${item.original.name || ''}</span>
+                            </div>`;
                     },
-                    showAvatars: true,
-                    minChars: 0
+                    selectTemplate: function (item) {
+                        if (!item || !item.original || !item.original.name || !item.original.id) return '';
+                        return `@[${item.original.name}](${item.original.id})`;
+                    },
+                    lookup: 'name', // This should match the property you want to search by
+                    fillAttr: 'name', // This should be the property to display in the text field
+                    noMatchTemplate: null,
+                    searchOpts: {
+                        pre: '<span>',
+                        post: '</span>',
+                        skip: false
+                    }
                 });
 
-                const getMentionedUsers = (callback) => {
-                    $('#dt_ai_filter_prompt').mentionsInput('getMentions', function (data) {
-                        callback(data);
-                    });
-                };
-
-                const getCommentWithMentions = (callback) => {
-                    $('#dt_ai_filter_prompt').mentionsInput('val', function (text) {
-                        callback(text);
-                    });
-                };
-
-                document.querySelector('.mentions-input-box').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelector('#dt_ai_filter_prompt').focus();
-                });
+                // Attached tribute to the filter prompt input.
+                const filter_prompt = document.getElementById('dt_ai_filter_prompt')
+                tribute.attach(filter_prompt);
 
                 const create_filter_spinner = $('#dt_ai_filter_prompt_spinner');
                 document.querySelector('#dt_ai_filter_prompt_button').addEventListener('click', (e) => {
                     e.preventDefault();
 
-                    getCommentWithMentions((data) => {
-                        if (data) {
-                            console.log(data);
+                    const data = filter_prompt.value;
+                    if (data) {
+                        console.log(data);
 
-                            const dt_ai_filter_prompt_button = $('#dt_ai_filter_prompt_button');
-                            dt_ai_filter_prompt_button.fadeOut('fast', () => {
-                                create_filter_spinner.fadeIn('slow', () => {
+                        const dt_ai_filter_prompt_button = $('#dt_ai_filter_prompt_button');
+                        dt_ai_filter_prompt_button.fadeOut('fast', () => {
+                            create_filter_spinner.fadeIn('slow', () => {
 
-                                    fetch(`${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-WP-Nonce': settings.nonce // Include the nonce in the headers
-                                        },
-                                        body: JSON.stringify({
-                                            prompt: data,
-                                            post_type: settings.post_type
-                                        })
+                                fetch(`${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-WP-Nonce': settings.nonce // Include the nonce in the headers
+                                    },
+                                    body: JSON.stringify({
+                                        prompt: data,
+                                        post_type: settings.post_type
                                     })
-                                    .then(response => response.json())
-                                    .then(response => {
-                                        console.log(response);
+                                })
+                                .then(response => response.json())
+                                .then(response => {
+                                    console.log(response);
 
-                                        /**
-                                         * Swap spinning widget back to execution button.
-                                         */
+                                    /**
+                                     * Swap spinning widget back to execution button.
+                                     */
 
-                                        create_filter_spinner.fadeOut('fast', () => {
-                                            dt_ai_filter_prompt_button.fadeIn('slow');
-                                        });
-
-                                        /**
-                                         * Assuming valid fields have been generated and required shared
-                                         * functions are present, proceed with custom filter creation and
-                                         * list refresh.
-                                         */
-
-                                        if (response?.fields && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
-
-                                            /**
-                                             * First, attempt to identify labels to be used based on returned
-                                             * fields shape; otherwise, labels shall remain blank.
-                                             */
-
-                                            let labels = [];
-                                            if (Array.isArray(response.fields) && window.SHAREDFUNCTIONS?.create_name_value_label) {
-                                                response.fields.forEach((field) => {
-                                                    for (const [key, filters] of Object.entries(field)) {
-
-                                                        if (key && Array.isArray(filters)) {
-                                                            filters.forEach((filter) => {
-
-                                                                const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, filter, isNaN(filter) ? filter : '', window?.list_settings);
-                                                                if (newLabel) {
-                                                                    labels.push(newLabel);
-                                                                }
-
-                                                            });
-                                                        }
-                                                    }
-                                                });
-                                            }
-
-                                            /**
-                                             * Determine status field to be appended to filter fields.
-                                             */
-
-                                            if ( window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
-
-                                                // Determine if archived records are to be shown.
-                                                const show_archived_records = window.SHAREDFUNCTIONS.get_json_from_local_storage(
-                                                    'list_archived_switch_status',
-                                                    false,
-                                                    settings.post_type
-                                                );
-
-                                                // Package archived records status flag.
-                                                let status = {};
-                                                status[settings.settings.status_field.status_key] = [ `${show_archived_records ? '' : '-'}${settings.settings.status_field.archived_key}` ];
-
-                                                // Finally append to filter fields.
-                                                if ( Array.isArray( response.fields ) ) {
-                                                    response.fields.push( status );
-                                                }
-                                            }
-
-                                            /**
-                                             * Proceed with Custom AI Filter creation and list refresh.
-                                             */
-
-                                            window.SHAREDFUNCTIONS.reset_split_by_filters();
-                                            window.SHAREDFUNCTIONS.add_custom_filter(
-                                                settings.translations['custom_filter'],
-                                                'custom-filter',
-                                                {
-                                                    fields: response.fields
-                                                },
-                                                labels
-                                            );
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error:', error);
-
-                                        create_filter_spinner.fadeOut('fast', () => {
-                                            dt_ai_filter_prompt_button.fadeIn('slow');
-                                            if ( window.SHAREDFUNCTIONS?.empty_list ) {
-                                                window.SHAREDFUNCTIONS.empty_list();
-                                            }
-                                        });
+                                    create_filter_spinner.fadeOut('fast', () => {
+                                        dt_ai_filter_prompt_button.fadeIn('slow');
                                     });
 
+                                    /**
+                                     * Assuming valid fields have been generated and required shared
+                                     * functions are present, proceed with custom filter creation and
+                                     * list refresh.
+                                     */
+
+                                    if (response?.fields && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
+
+                                        /**
+                                         * First, attempt to identify labels to be used based on returned
+                                         * fields shape; otherwise, labels shall remain blank.
+                                         */
+
+                                        let labels = [];
+                                        if (Array.isArray(response.fields) && window.SHAREDFUNCTIONS?.create_name_value_label) {
+                                            response.fields.forEach((field) => {
+                                                for (const [key, filters] of Object.entries(field)) {
+
+                                                    if (key && Array.isArray(filters)) {
+                                                        filters.forEach((filter) => {
+
+                                                            const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, filter, isNaN(filter) ? filter : '', window?.list_settings);
+                                                            if (newLabel) {
+                                                                labels.push(newLabel);
+                                                            }
+
+                                                        });
+                                                    }
+                                                }
+                                            });
+                                        }
+
+                                        /**
+                                         * Determine status field to be appended to filter fields.
+                                         */
+
+                                        if ( window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
+
+                                            // Determine if archived records are to be shown.
+                                            const show_archived_records = window.SHAREDFUNCTIONS.get_json_from_local_storage(
+                                                'list_archived_switch_status',
+                                                false,
+                                                settings.post_type
+                                            );
+
+                                            // Package archived records status flag.
+                                            let status = {};
+                                            status[settings.settings.status_field.status_key] = [ `${show_archived_records ? '' : '-'}${settings.settings.status_field.archived_key}` ];
+
+                                            // Finally append to filter fields.
+                                            if ( Array.isArray( response.fields ) ) {
+                                                response.fields.push( status );
+                                            }
+                                        }
+
+                                        /**
+                                         * Proceed with Custom AI Filter creation and list refresh.
+                                         */
+
+                                        window.SHAREDFUNCTIONS.reset_split_by_filters();
+                                        window.SHAREDFUNCTIONS.add_custom_filter(
+                                            settings.translations['custom_filter'],
+                                            'custom-filter',
+                                            {
+                                                fields: response.fields
+                                            },
+                                            labels
+                                        );
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+
+                                    create_filter_spinner.fadeOut('fast', () => {
+                                        dt_ai_filter_prompt_button.fadeIn('slow');
+                                        if ( window.SHAREDFUNCTIONS?.empty_list ) {
+                                            window.SHAREDFUNCTIONS.empty_list();
+                                        }
+                                    });
                                 });
+
                             });
-                        }
-                    });
+                        });
+                    }
                 });
             });
         </script>
