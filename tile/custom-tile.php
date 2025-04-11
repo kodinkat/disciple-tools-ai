@@ -163,8 +163,8 @@ class Disciple_Tools_AI_Tile
         $this->dt_site_scripts();
         ?>
         <input id="dt_ai_filter_prompt" name="dt_ai_filter_prompt" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" />
-        <a id="dt_ai_filter_prompt_button" class="button" style="padding-right: 4px;">
-            <img class="dt-white-icon" style="display: inline-block;" src="<?php echo esc_html( get_template_directory_uri() . '/dt-assets/images/speak.svg' ) ?>" alt="" />
+        <a id="dt_ai_filter_prompt_button" class="button">
+            <i class="mdi mdi-star-four-points-outline" style="font-size: 16px;"></i>
         </a>
         <span id="dt_ai_filter_prompt_spinner" class="loading-spinner active" style="display: none;"></span>
         <script>
@@ -277,19 +277,20 @@ class Disciple_Tools_AI_Tile
                 });
 
                 // Attached tribute to the filter prompt input.
-                const filter_prompt = document.getElementById('dt_ai_filter_prompt')
+                const filter_prompt = document.getElementById('dt_ai_filter_prompt');
                 tribute.attach(filter_prompt);
 
+                // Listen for click event on the filter prompt button.
                 const create_filter_spinner = $('#dt_ai_filter_prompt_spinner');
-                document.querySelector('#dt_ai_filter_prompt_button').addEventListener('click', (e) => {
+                const dt_ai_filter_prompt_button = document.getElementById('dt_ai_filter_prompt_button');
+                dt_ai_filter_prompt_button.addEventListener('click', (e) => {
                     e.preventDefault();
 
                     const data = filter_prompt.value;
                     if (data) {
                         console.log(data);
 
-                        const dt_ai_filter_prompt_button = $('#dt_ai_filter_prompt_button');
-                        dt_ai_filter_prompt_button.fadeOut('fast', () => {
+                        $(dt_ai_filter_prompt_button).fadeOut('fast', () => {
                             create_filter_spinner.fadeIn('slow', () => {
 
                                 fetch(`${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`, {
@@ -312,7 +313,7 @@ class Disciple_Tools_AI_Tile
                                      */
 
                                     create_filter_spinner.fadeOut('fast', () => {
-                                        dt_ai_filter_prompt_button.fadeIn('slow');
+                                        $(dt_ai_filter_prompt_button).fadeIn('slow');
                                     });
 
                                     /**
@@ -389,7 +390,7 @@ class Disciple_Tools_AI_Tile
                                     console.error('Error:', error);
 
                                     create_filter_spinner.fadeOut('fast', () => {
-                                        dt_ai_filter_prompt_button.fadeIn('slow');
+                                        $(dt_ai_filter_prompt_button).fadeIn('slow');
                                         if ( window.SHAREDFUNCTIONS?.empty_list ) {
                                             window.SHAREDFUNCTIONS.empty_list();
                                         }

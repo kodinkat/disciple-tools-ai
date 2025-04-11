@@ -1,3 +1,93 @@
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('search').addEventListener('keyup', function(e) {
+    e.preventDefault();
+
+    if (event.keyCode === 13) { // Enter key pressed.
+      create_filter();
+    }
+  });
+});
+
+function init_mentions_search() {
+  const tribute = new Tribute({
+    triggerKeys: ['@'],
+    values: (text, callback) => {
+        
+      // Specify endpoint, payload and dispatch mentions search request.
+      const url = jsObject.root + jsObject.parts.root + '/v1/' + jsObject.parts.type + '/mentions_search';
+      const payload = {
+        action: 'post',
+        parts: jsObject.parts,
+        sys_type: jsObject.sys_type,
+        search: text,
+        post_type: jsObject.default_post_type
+      }
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': jsObject.nonce // Include the nonce in the headers
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(json => {
+
+        let data = json?.options ?? [];
+
+        // Filter out any items with undefined, null or non-string names
+        data = data.filter(item => typeof item.name === 'string');
+
+        // Sort data array entries by object name.
+        data.sort((a, b) => {
+            const aName = a.name.toUpperCase();
+            const bName = b.name.toUpperCase();
+
+            if (aName < bName) {
+                return -1;
+
+            } else if (aName > bName) {
+                return 1;
+
+            } else {
+                return 0;
+            }
+        });
+
+        callback(data);            
+      })
+      .catch((err) => {
+          console.error(err);
+          callback([]); // Return empty array on error
+      });
+    },
+    menuItemTemplate: function (item) {
+        if (!item || !item.original) return '';
+        return `<div class="user-item">
+            ${item.original.avatar ? `<img src="${item.original.avatar}">` : ''}
+            <span class="name">${item.original.name || ''}</span>
+            </div>`;
+    },
+    selectTemplate: function (item) {
+        if (!item || !item.original || !item.original.name || !item.original.id) return '';
+        return `@[${item.original.name}](${item.original.id})`;
+    },
+    lookup: 'name', // This should match the property you want to search by
+    fillAttr: 'name', // This should be the property to display in the text field
+    noMatchTemplate: null,
+    searchOpts: {
+        pre: '<span>',
+        post: '</span>',
+        skip: false
+    }
+  });
+
+  // Attached tribute to the filter prompt input.
+  const filter_prompt = document.getElementById('search');
+  tribute.attach(filter_prompt);
+}
+
 function create_filter() {
   const text = document.getElementById('search').value;
 

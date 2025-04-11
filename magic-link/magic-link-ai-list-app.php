@@ -8,7 +8,7 @@ if ( !defined( 'ABSPATH' ) ){
  */
 class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
 
-    public $page_title = 'AI Filtered List App';
+    public $page_title = 'AI Filtered List';
     public $page_description = 'Dynamically display AI generated filtered record lists.';
     public $root = 'ai'; // @todo define the root of the url {yoursite}/root/type/key/action
     public $type = 'list_app'; // @todo define the type
@@ -123,13 +123,17 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         if ( class_exists( 'Disciple_Tools_Bulk_Magic_Link_Sender_API' ) ) {
             Disciple_Tools_Bulk_Magic_Link_Sender_API::enqueue_magic_link_utilities_script();
         }
+
+        dt_theme_enqueue_script( 'tribute-js', 'dt-core/dependencies/tributejs/dist/tribute.min.js', array(), true );
+        dt_theme_enqueue_style( 'tribute-css', 'dt-core/dependencies/tributejs/dist/tribute.css', array() );
     }
 
     public function dt_magic_url_base_allowed_js( $allowed_js ) {
         $allowed_js[] = 'dt-web-components-js';
         $allowed_js[] = 'dt-web-components-services-js';
         $allowed_js[] = 'ml-ai-list-app-js';
-
+        $allowed_js[] = 'tribute-js';
+        
         if ( class_exists( 'Disciple_Tools_Bulk_Magic_Link_Sender_API' ) ) {
             $allowed_js[] = Disciple_Tools_Bulk_Magic_Link_Sender_API::get_magic_link_utilities_script_handle();
         }
@@ -141,7 +145,8 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         $allowed_css[] = 'material-font-icons-css';
         $allowed_css[] = 'dt-web-components-css';
         $allowed_css[] = 'ml-ai-list-app-css';
-
+        $allowed_css[] = 'tribute-css';
+        
         return $allowed_css;
     }
 
@@ -219,6 +224,10 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                     'item_saved' => esc_attr__( 'Item Saved', 'disciple-tools-ai' )
                 ]
             ] ) ?>][0];
+
+            // Initialize tribute mentions search.
+            init_mentions_search();
+
         </script>
         <?php
     }
@@ -235,7 +244,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                     <div id="search-bar">
                         <input type="text" id="search" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" onkeyup="show_filter_clear_option();" />
                         <button id="clear-button" style="display: none;" class="clear-button mdi mdi-close" onclick="clear_filter();"></button>
-                        <button class="filter-button mdi mdi-comment-outline" onclick="create_filter();"></button>
+                        <button class="filter-button mdi mdi-star-four-points-outline" onclick="create_filter();"></button>
                     </div>
                 </div>
 
@@ -257,7 +266,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
 
                 <form>
                     <header>
-                        <button type="button" class="details-toggle mdi mdi-arrow-left" onclick="toggle_panels()"></button>
+                        <button type="button" class="details-toggle mdi mdi-arrow-right" onclick="toggle_panels()"></button>
                         <h2 id="detail-title"></h2>
                         <span id="detail-title-post-id"></span>
                     </header>
@@ -337,6 +346,20 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         $namespace = $this->root . '/v1';
 
         register_rest_route(
+            $namespace, '/' . $this->type . '/mentions_search', [
+                [
+                    'methods'  => 'POST',
+                    'callback' => [ $this, 'mentions_search' ],
+                    'permission_callback' => function( WP_REST_Request $request ){
+                        $magic = new DT_Magic_URL( $this->root );
+
+                        return $magic->verify_rest_endpoint_permissions_on_post( $request );
+                    },
+                ],
+            ]
+        );
+
+        register_rest_route(
             $namespace, '/' . $this->type . '/create_filter', [
                 [
                     'methods'  => 'POST',
@@ -393,6 +416,61 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         );
     }
 
+    public function mentions_search( WP_REST_Request $request ) {
+        $params = $request->get_params();
+
+        if ( ! isset( $params['search'], $params['post_type'], $params['parts'], $params['action'], $params['sys_type'] ) ) {
+            return new WP_Error( __METHOD__, 'Missing parameters', [ 'status' => 400 ] );
+        }
+
+        // Sanitize and fetch user/post id
+        $params = dt_recursive_sanitize_array( $params );
+
+        // Update logged-in user state if required accordingly, based on their sys_type
+        if ( !is_user_logged_in() ) {
+            $this->update_user_logged_in_state( $params['sys_type'], $params['parts']['post_id'] );
+        }
+
+        $options = [];
+        $search = $params['search'];
+        $post_type = $params['post_type'];
+
+        // Search users by name.
+        $users = Disciple_Tools_Users::get_assignable_users_compact( $search, true, $post_type );
+        foreach ( $users ?? [] as $user ) {
+            if ( isset( $user['ID'], $user['name'] ) ) {
+                $options[] = [
+                    'id' => $user['ID'],
+                    'name' => $user['name'],
+                    'type' => $post_type,
+                    'avatar' => $user['avatar'] ?? null
+                ];  
+            }
+        }
+
+        // Search locations by name.
+        $locations = Disciple_Tools_Mapping_Queries::search_location_grid_by_name( [
+            'search_query' => $search,
+            'filter' => 'all'
+        ] );
+
+        foreach ( $locations['location_grid'] ?? [] as $location ) {
+            if ( isset( $location['grid_id'], $location['label'] ) ) {
+                $options[] = [
+                    'id' => $location['grid_id'],
+                    'name' => $location['label'],
+                    'type' => $post_type,
+                    'avatar' => null
+                ];
+            }
+        }
+
+        // Return search results.
+        return [
+            'options' => $options
+        ];
+    }
+
     public function create_filter( WP_REST_Request $request ) {
         $params = $request->get_params();
 
@@ -413,7 +491,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
         $post_type = $params['filter']['post_type'];
 
         // Request inference from dt ai create filter endpoint.
-        $filter = Disciple_Tools_AI_API::handle_create_filter_request( Disciple_Tools_AI_API::parse_prompt( $prompt, $post_type ), $post_type );
+        $filter = Disciple_Tools_AI_API::handle_create_filter_request( $prompt, $post_type );
 
         // Assuming we have a valid shape, generate required list.
         if ( !is_wp_error( $filter ) && isset( $filter['fields'] ) ) {
