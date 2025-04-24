@@ -1,0 +1,7 @@
+Show me all contacts based in Spain. ==//== {"locations": ["Spain"]}
+List all contacts in Akrotiri and Dhekelia ==//== {"locations": ["Akrotiri and Dhekelia"]}
+Show all contacts in Morocco or Gibraltar ==//== {"locations": ["Morocco", "Gibraltar"]}
+Show all contacts in the World ==//== {"locations": ["World"]}
+Contacts in Paris ==//== {"locations": ["Paris"]}
+
+Show all contacts ==//== {"locations": []}

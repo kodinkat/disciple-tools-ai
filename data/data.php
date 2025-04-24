@@ -41,6 +41,7 @@ class Disciple_Tools_AI_Data {
      */
     public function __construct() {
         add_filter( 'dt_ai_filter_specs', [ $this, 'dt_ai_filter_specs' ], 10, 2 );
+        add_filter( 'dt_ai_connection_specs', [ $this, 'dt_ai_connection_specs' ], 10, 1 );
     }
 
     private function get_data( $path, $escape = true ): array {
@@ -165,6 +166,47 @@ class Disciple_Tools_AI_Data {
         ];
 
         return $filter_specs;
+    }
+
+    public function dt_ai_connection_specs( $connection_specs ): array {
+        
+        /**
+         * Load the various parts which will eventually be used
+         * to construct the connection generation model specification.
+         */
+
+        $connections_dir = __DIR__ . '/connections/';
+
+        $brief = $this->get_data( $connections_dir . '0-brief/brief.txt' );
+        $instructions = $this->get_data( $connections_dir . '1-instructions/instructions.txt' );
+        $considerations = $this->get_data( $connections_dir . '3-considerations/considerations.txt' );
+
+        /**
+         * The extraction of examples will require additional logic, in
+         * order to work into the desired shape.
+         */
+
+        $examples = [];
+        $examples[] = 'Examples';
+        foreach ( ['connections', 'locations'] as $connection_type ) {
+            $path = $connections_dir . '2-examples/'. $connection_type .'/examples.txt';
+            if ( file_exists( $path ) ) {
+                $examples = array_merge( $examples, $this->reshape_examples( $this->get_data( $path ), false ) );
+            }
+        }
+ 
+        /**
+         * Finally, build and return required specification shape.
+         */
+
+        $connection_specs['connections'] = [
+            'brief' => $brief,
+            'instructions' => $instructions,
+            'considerations' => $considerations,
+            'examples' => $examples
+        ];
+
+        return $connection_specs;
     }
 }
 

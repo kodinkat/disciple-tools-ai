@@ -1,0 +1,5 @@
+Additional Considerations:
+
+- Combining Criteria: When multiple criteria are specified, include all relevant filters in the JSON object.
+- Only return a valid json string. Do not return any other text or newline characters such as \\n
+- You should return an object with the keys `locations` or `connections` and arrays containing extracted values.

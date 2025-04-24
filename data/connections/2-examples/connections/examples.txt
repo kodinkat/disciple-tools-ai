@@ -1,0 +1,7 @@
+Show records for baptised users Jane Doe and Sam John. ==//== {"connections": ["Jane Doe", "Sam John"]}
+Show records baptized by Sam John and Jane Doe. ==//== {"connections": ["Sam John", "Jane Doe"]}
+Show records coached by Sarah Jane and Frank Frank. ==//== {"connections": ["Sarah Jane", "Frank Frank"]}
+Show records which connect to Ali Hajjar. ==//== {"connections": ["Ali Hajjar"]}
+
+Show all contacts who have been baptized by somebody. ==//== {"connections": []}
+Show contacts not yet coached by anybody. ==//== {"connections": []}

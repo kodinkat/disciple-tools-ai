@@ -1,0 +1,6 @@
+Instructions:
+
+1. Analyze the user’s natural language query to determine the connections to be extracted into json object.
+2. Construct a JSON object following the structures outlined within the provided examples, ensuring it accurately represents the user’s intent.
+3. Ensure the JSON includes only the necessary fields and values specified by the user’s request.
+4. If the user’s intent is ambiguous, make reasonable assumptions while maintaining flexibility for further refinement.
