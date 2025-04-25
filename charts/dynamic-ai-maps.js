@@ -159,7 +159,11 @@
                       <span id="filter_spinner" style="display: inline-block" class="loading-spinner active"></span>
                     </button>
                 </div>
-
+              </div>
+              <div id="geocode-details" class="geocode-details">
+                ${window.lodash.escape(window.dt_mapbox_metrics.translations.details_title)}<span class="close-details" style="float:right;"><i class="fi-x"></i></span>
+                <hr style="margin:10px 5px;">
+                <div id="geocode-details-content"></div>
               </div>
             </div>
         `);
@@ -259,6 +263,9 @@
       document.getElementById('filter_spinner').style.display = 'inline-block';
       document.getElementById('filter_icon').style.display = 'none';
 
+      // Close any open post-record detail links and submit request.
+      $('#geocode-details').fadeOut('fast');
+
       jQuery.ajax({
         type: "POST",
         data: JSON.stringify(payload),
@@ -270,8 +277,6 @@
         },
       })
       .done(function (data) {
-        console.log('success')
-        console.log(data)
 
         /**
          * Pause the flow accordingly, if multiple connection options are available.
@@ -298,9 +303,6 @@
     }
 
     window.show_multiple_options_modal = (multiple_options) => {
-      console.log('multiple options detected')
-      console.log(multiple_options)
-
       const modal = $('#modal-small');
       if (modal) {
 
@@ -485,8 +487,6 @@
         "selections": window.package_multiple_options_selections()
       };
 
-      console.log(payload);
-
       // Close modal and proceed with re-submission.
       $(modal).foundation('close');
 
@@ -506,7 +506,6 @@
         },
       })
       .done(function (data) {
-        console.log(data)
 
         // If successful, load points.
         if ((data?.status === 'success') && (data?.points)) {
@@ -631,7 +630,112 @@
           'circle-stroke-color': '#fff',
         }
       });
-    }
-  })
 
+      /**
+       * Add Event Listeners
+       */
+
+      mapbox_library_api.map.on(
+        'click',
+        layer_key,
+        window.handle_point_clicks
+      );
+
+      mapbox_library_api.map.on('mouseenter', layer_key, function () {
+        mapbox_library_api.map.getCanvas().style.cursor = 'pointer';
+      });
+
+      mapbox_library_api.map.on('mouseleave', layer_key, function () {
+        mapbox_library_api.map.getCanvas().style.cursor = '';
+      });
+
+      jQuery(document).on('click', '.close-details', function () {
+        jQuery('#geocode-details').hide();
+      });
+    }
+
+    window.handle_point_clicks = (e) => {
+      e.preventDefault();
+
+      // Find all features within a bounding box around a point.
+      let point = e.point;
+      let width = 10;
+      let height = 20;
+      let b1 = [point.x - width / 2, point.y - height / 2];
+      let b2 = [point.x + width / 2, point.y + height / 2];
+
+      let features = [];
+      let rendered_features = mapbox_library_api.map.queryRenderedFeatures([
+        b1,
+        b2,
+      ]);
+
+      $.each(rendered_features, function (idx, feature) {
+        if (feature.source && feature.source.startsWith('dt-ai-maps-')) {
+          features.push(feature);
+        }
+      });
+
+      // Close and empty any existing record links.
+      let geocode_details = $('#geocode-details');
+      let geocode_details_content = $('#geocode-details-content');
+      $(geocode_details).fadeOut('fast', () => {
+        $(geocode_details_content).empty();
+
+        // Proceed with repopulating and displaying post-record links.
+        if (features.length > 0) {
+          let content_html = ``;
+          $.each(features, function (idx, feature) {
+            if (idx > 20) {
+              return;
+            }
+            if (
+              feature.properties &&
+              feature.properties.post_type &&
+              feature.properties.post_id &&
+              feature.properties.name
+            ) {
+              // Ensure the correct post-type is adopted for system-based query layers.
+              let post_type = feature.properties.post_type;
+              switch (post_type) {
+                case 'system-users': {
+                  post_type = 'contacts';
+                  break;
+                }
+              }
+
+              content_html += `
+              <div class="grid-x" id="list-${window.lodash.escape(idx)}">
+                <div class="cell">
+                    <a target="_blank" href="${window.lodash.escape(window.wpApiShare.site_url)}/${window.lodash.escape(post_type)}/${window.lodash.escape(feature.properties.post_id)}">${window.lodash.escape(feature.properties.name)}</a>
+                </div>
+              </div>`;
+            }
+          });
+          $(geocode_details_content).html(content_html);
+
+          // Remove any duplicate links.
+          window.remove_geocode_details_content_duplicates();
+
+          $(geocode_details_content).fadeIn('fast');
+          $(geocode_details).fadeIn('fast');
+        }
+      });
+    }
+
+    window.remove_geocode_details_content_duplicates = () => {
+      let content = $('#geocode-details-content');
+      let links = [];
+      $(content)
+      .find('a')
+      .each(function (idx, link) {
+        if (window.lodash.includes(links, $(link).attr('href'))) {
+          $(link).parent().remove();
+        } else {
+          links.push($(link).attr('href'));
+        }
+      });
+    }
+
+  })
 })();

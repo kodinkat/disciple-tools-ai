@@ -297,7 +297,7 @@ class Disciple_Tools_AI_API {
                         'properties' => array(
                             'address' => $location['address'] ?? '',
                             'post_id' => $location['post_id'],
-                            'name' => $location['label'],
+                            'name' => $post['name'] ?? $location['label'],
                             'post_type' => $post_type
                         ),
                         'geometry' => array(

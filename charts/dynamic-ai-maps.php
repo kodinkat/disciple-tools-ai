@@ -59,22 +59,13 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
                     'map_mirror' => dt_get_location_grid_mirror( true ),
                     'menu_slug' => $this->base_slug,
                     'post_type' => 'contacts',
-                    //'post_types' => [],
-                    //'post_types_system_options' => [],
                     'title' => $this->title,
                     'rest_endpoints_base' => esc_url_raw( rest_url() ) . "$this->base_slug/$this->slug",
                     'nonce' => wp_create_nonce( 'wp_rest' )
-                    /*'geocoder_url' => trailingslashit( get_stylesheet_directory_uri() ),
-                    'geocoder_nonce' => wp_create_nonce( 'wp_rest' ),
-                    'rest_base_url' => $this->namespace,
-                    'rest_url' => 'cluster_geojson',
-                    'post_type_rest_url' => 'post_type_geojson',
-                    'totals_rest_url' => 'get_grid_totals',
-                    'list_by_grid_rest_url' => 'get_list_by_grid_id',
-                    'points_rest_url' => 'points_geojson'*/
                 ],
                 'translations' => [
                     'placeholder' => __( 'Describe the map you wish to view...', 'disciple-tools-ai' ),
+                    'details_title' => __( 'Maps', 'disciple-tools-ai' ),
                     'multiple_options' => [
                         'title' => __( 'Multiple Options Detected', 'disciple-tools-ai' ),
                         'locations' => __( 'Locations', 'disciple-tools-ai' ),
