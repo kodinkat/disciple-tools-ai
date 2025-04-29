@@ -5,6 +5,96 @@ if ( !defined( 'ABSPATH' ) ){
 
 class Disciple_Tools_AI_API {
 
+    public static function parse_prompt_for_pii( $prompt ): array {
+        if ( !isset( $prompt ) ) {
+            return [];
+        }
+
+        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
+        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
+        $llm_endpoint = $llm_endpoint_root . '/PII';
+
+        /**
+         * Support retries; in the event of initial faulty JSON shaped responses.
+         */
+
+        $attempts = 0;
+        $pii = [];
+
+        while ( $attempts++ < 2 ) {
+            try {
+
+                // Dispatch to prediction guard for prompted pii inference.
+                $inferred = wp_remote_post( $llm_endpoint, [
+                    'method' => 'POST',
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $llm_api_key,
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => json_encode( [
+                        'prompt' => $prompt,
+                        'replace' => false
+                    ] ),
+                    'timeout' => 30,
+                ] );
+
+                // Retry, in the event of an error.
+                if ( !is_wp_error( $inferred ) ) {
+
+                    // Ensure a valid JSON structure has been inferred; otherwise, retry!
+                    $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
+                    if ( isset( $inferred_response['checks'][0]['types_and_positions'], $inferred_response['checks'][0]['status'] ) && $inferred_response['checks'][0]['status'] === 'success' ) {
+
+                        // Extract inferred connections into final response and stop retry attempts.
+                        $pii = json_decode( str_replace( [ '\n', '\r' ], '', trim( $inferred_response['checks'][0]['types_and_positions'] ) ), true );
+                        if ( !empty( $pii ) ) {
+                            $attempts = 2;
+                        }
+                    }
+                }
+            } catch ( Exception $e ) {
+                dt_write_log( $e->getMessage() );
+            }
+        }
+
+        /**
+         * If pii are detected, then create obfuscation mappings.
+         */
+
+        $pii_mappings = [];
+        foreach ( $pii ?? [] as $type_and_position ) {
+
+            // Ensure to ignore conflicting types, such as URLs, which conflict with EMAIL_ADDRESS.
+            if ( !in_array( $type_and_position['type'], ['URL'] ) ) {
+                $original = substr( $prompt, $type_and_position['start'], $type_and_position['end'] - $type_and_position['start'] );
+                $obfuscated = str_shuffle( $original . uniqid() );
+                $pii_mappings[$obfuscated] = $original;
+            }
+        }
+
+        /**
+         * Next, if we have mappings, proceed with original prompt obfuscation.
+         */
+
+        $obfuscated_prompt = $prompt;
+        foreach ( $pii_mappings as $obfuscated => $original ) {
+            $obfuscated_prompt = str_replace( $original, $obfuscated, $obfuscated_prompt );
+        }
+
+        /**
+         * Finally, return updated obfuscated prompt.
+         */
+
+        return [
+            'prompt' => [
+                'original' => $prompt,
+                'obfuscated' => $obfuscated_prompt,
+            ],
+            'pii' => $pii,
+            'mappings' => $pii_mappings
+        ];
+    }
+
     public static function handle_create_filter_request( $prompt, $post_type ): array {
         if ( !isset( $prompt, $post_type ) ) {
             return [];
@@ -16,7 +106,7 @@ class Disciple_Tools_AI_API {
         $dt_ai_filter_specs = apply_filters( 'dt_ai_filter_specs', [], $post_type );
         $llm_endpoint = $llm_endpoint_root . '/chat/completions';
 
-        // Convert filtered specifications into desired content shape.
+        // Convert filtered specifications into the desired content shape.
         $llm_model_specs_filter = '';
         if ( !empty( $dt_ai_filter_specs ) && isset( $dt_ai_filter_specs['filters'] ) ) {
             $filters = $dt_ai_filter_specs['filters'];
@@ -48,7 +138,7 @@ class Disciple_Tools_AI_API {
         }
 
         /**
-         * Support retries; in the event of initial faulty json shaped responses.
+         * Support retries; in the event of initial faulty JSON shaped responses.
          */
 
         $attempts = 0;
@@ -86,7 +176,7 @@ class Disciple_Tools_AI_API {
                 // Retry, in the event of an error.
                 if ( !is_wp_error( $inferred ) ) {
 
-                    // Ensure a valid json structure has been inferred; otherwise, retry!
+                    // Ensure a valid JSON structure has been inferred; otherwise, retry!
                     $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
                     if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
 
@@ -139,7 +229,7 @@ class Disciple_Tools_AI_API {
         }
 
         /**
-         * Support retries; in the event of initial faulty json shaped responses.
+         * Support retries; in the event of initial faulty JSON shaped responses.
          */
 
         $attempts = 0;
@@ -177,7 +267,7 @@ class Disciple_Tools_AI_API {
                 // Retry, in the event of an error.
                 if ( !is_wp_error( $inferred ) ) {
 
-                    // Ensure a valid json structure has been inferred; otherwise, retry!
+                    // Ensure a valid JSON structure has been inferred; otherwise, retry!
                     $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
                     if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
 
@@ -196,7 +286,7 @@ class Disciple_Tools_AI_API {
         return $response;
     }
 
-    public static function parse_locations_for_ids( $locations ): array {
+    public static function parse_locations_for_ids( $locations, $pii_mappings = [] ): array {
         if ( empty( $locations ) ) {
             return [];
         }
@@ -206,12 +296,13 @@ class Disciple_Tools_AI_API {
         // Iterate over locations, in search of corresponding grid ids.
         foreach ( $locations as $location ) {
             $hits = Disciple_Tools_Mapping_Queries::search_location_grid_by_name( [
-                'search_query' => $location,
+                'search_query' => $pii_mappings[$location] ?? $location,
                 'filter' => 'all'
             ] );
 
             $parsed_locations[] = [
-                'prompt' => $location,
+                'prompt' => $pii_mappings[$location] ?? $location,
+                'pii_prompt' => $location,
                 'options' => array_map( function( $hit ) {
                     return [
                         'id' => $hit['grid_id'],
@@ -224,7 +315,7 @@ class Disciple_Tools_AI_API {
         return $parsed_locations;
     }
 
-    public static function parse_connections_for_users( $users, $post_type ): array {
+    public static function parse_connections_for_users( $users, $post_type, $pii_mappings = [] ): array {
         if ( empty( $users ) ) {
             return [];
         }
@@ -233,9 +324,10 @@ class Disciple_Tools_AI_API {
 
         // Iterate over connections, in search of corresponding system users.
         foreach ( $users as $user ) {
-            $hits = Disciple_Tools_Users::get_assignable_users_compact( $user, true, $post_type );
+            $hits = Disciple_Tools_Users::get_assignable_users_compact( $pii_mappings[$user] ?? $user, true, $post_type );
             $parsed_users[] = [
-                'prompt' => $user,
+                'prompt' => $pii_mappings[$user] ?? $user,
+                'pii_prompt' => $user,
                 'options' => array_map( function( $hit ) {
                     return [
                         'id' => $hit['ID'],
@@ -248,20 +340,20 @@ class Disciple_Tools_AI_API {
         return $parsed_users;
     }
 
-    public static function parse_connections_for_post_names( $names, $post_type ): array {
+    public static function parse_connections_for_post_names( $names, $post_type, $pii_mappings = [] ): array {
         if ( empty( $names ) ) {
             return [];
         }
 
         $parsed_post_names = [];
 
-        // Iterate over connections, in search of corresponding post records.
+        // Iterate over connections, in search of corresponding post-records.
         foreach ( $names as $name ) {
 
             $records = DT_Posts::list_posts( $post_type, [
                 'fields' => [
                     [
-                        'name' => $name
+                        'name' => $pii_mappings[$name] ?? $name
                     ]
                 ],
                 'sort' => '-last_modified',
@@ -272,7 +364,8 @@ class Disciple_Tools_AI_API {
             ]);
 
             $parsed_post_names[] = [
-                'prompt' => $name,
+                'prompt' => $pii_mappings[$name] ?? $name,
+                'pii_prompt' => $name,
                 'options' => array_map( function( $record ) {
                     return [
                         'id' => $record['ID'],

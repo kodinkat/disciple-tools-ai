@@ -1,7 +1,7 @@
-Show me all contacts based in Spain. ==//== {"locations": ["Spain"]}
-List all contacts in Akrotiri and Dhekelia ==//== {"locations": ["Akrotiri and Dhekelia"]}
-Show all contacts in Morocco or Gibraltar ==//== {"locations": ["Morocco", "Gibraltar"]}
+Show me all contacts based in pc71f056ba8ne4aSi2. ==//== {"locations": ["pc71f056ba8ne4aSi2"]}
+List all contacts in 8i5rkb9o093i7r0A6dtfa and bh7e3e1l63adkia5D8f09 ==//== {"locations": ["8i5rkb9o093i7r0A6dtfa", "bh7e3e1l63adkia5D8f09"]}
+Show all contacts in co1c8rMao0o785fbc76f or cb158t60b1a0lrG87irafb ==//== {"locations": ["co1c8rMao0o785fbc76f", "cb158t60b1a0lrG87irafb"]}
 Show all contacts in the World ==//== {"locations": ["World"]}
-Contacts in Paris ==//== {"locations": ["Paris"]}
+Contacts in 40P511d8cifs67aera ==//== {"locations": ["40P511d8cifs67aera"]}
 
 Show all contacts ==//== {"locations": []}

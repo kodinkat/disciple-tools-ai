@@ -127,11 +127,25 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         $posts = [];
         $multiple_posts = [];
 
+        /**
+         * Before submitting to LLM for analysis, ensure to obfuscate any PII.
+         */
+
+        $pii = Disciple_Tools_AI_API::parse_prompt_for_pii( $prompt );
+        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
+        if ( $has_pii ) {
+            $prompt = $pii['prompt']['obfuscated'];
+        }
+
+        /**
+         * Proceed with parsing prompt for connections.
+         */
+
         $connections = Disciple_Tools_AI_API::parse_prompt_for_connections( $prompt );
 
         // Extract any locations from identified connections.
         if ( !empty( $connections['locations'] ) ) {
-            $locations = Disciple_Tools_AI_API::parse_locations_for_ids( $connections['locations'] );
+            $locations = Disciple_Tools_AI_API::parse_locations_for_ids( $connections['locations'], $pii['mappings'] ?? [] );
 
             // Identify locations with multiple options.
             $multiple_locations = array_filter( $locations, function( $location ) {
@@ -147,7 +161,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
              */
 
              // Extract any users from identified connections.
-            $users = Disciple_Tools_AI_API::parse_connections_for_users( $connections['connections'], $post_type );
+            $users = Disciple_Tools_AI_API::parse_connections_for_users( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
 
             // Identify users with multiple options.
             $multiple_users = array_filter( $users, function( $user ) {
@@ -158,8 +172,8 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
              * Posts.
              */
 
-            // Extract any post names from identified connections.
-            $posts = Disciple_Tools_AI_API::parse_connections_for_post_names( $connections['connections'], $post_type );
+            // Extract any post-names from identified connections.
+            $posts = Disciple_Tools_AI_API::parse_connections_for_post_names( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
 
             // Identify posts with multiple options.
             $multiple_posts = array_filter( $posts, function( $post ) {
@@ -184,8 +198,8 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
 
         /**
          * If no multiple options are detected, proceed with parsing prompt
-         * and encode identified connections, into required filter format.
-         * By this point, connections should have at most, a single option, having gone through
+         * and encode identified connections into the required filter format.
+         * By this point, connections should have, at most, a single option, having gone through
          * the multiple options client selection flow.
          */
 
@@ -194,10 +208,10 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
 
         // Process locations.
         foreach ( $locations as $location ) {
-            $location_prompt = $location['prompt'];
+            $location_prompt = ( $has_pii && isset( $location['pii_prompt'] ) ) ? $location['pii_prompt'] : $location['prompt'];
             if ( !in_array( $location_prompt, $processed_connection_prompts ) && !empty( $location['options'] ) ) {
                 $option = $location['options'][0];
-                $option_formatted = '@['. $option['label'] .']('. $option['id'] .')';
+                $option_formatted = '@[####]('. $option['id'] .')';
                 $parsed_prompt = str_replace( $location_prompt, $option_formatted, $parsed_prompt );
 
                 $processed_connection_prompts[] = $location_prompt;
@@ -206,10 +220,10 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
 
         // Process users.
         foreach ( $users as $user ) {
-            $user_prompt = $user['prompt'];
+            $user_prompt = ( $has_pii && isset( $user['pii_prompt'] ) ) ? $user['pii_prompt'] : $user['prompt'];
             if ( !in_array( $user_prompt, $processed_connection_prompts ) && !empty( $user['options'] ) ) {
                 $option = $user['options'][0];
-                $option_formatted = '@['. $option['label'] .']('. $option['id'] .')';
+                $option_formatted = '@[####]('. $option['id'] .')';
                 $parsed_prompt = str_replace( $user_prompt, $option_formatted, $parsed_prompt );
 
                 $processed_connection_prompts[] = $user_prompt;
@@ -218,10 +232,10 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
 
         // Process posts.
         foreach ( $posts as $post ) {
-            $post_prompt = $post['prompt'];
+            $post_prompt = ( $has_pii && isset( $post['pii_prompt'] ) ) ? $post['pii_prompt'] : $post['prompt'];
             if ( !in_array( $post_prompt, $processed_connection_prompts ) && !empty( $post['options'] ) ) {
                 $option = $post['options'][0];
-                $option_formatted = '@['. $option['label'] .']('. $option['id'] .')';
+                $option_formatted = '@[####]('. $option['id'] .')';
                 $parsed_prompt = str_replace( $post_prompt, $option_formatted, $parsed_prompt );
 
                 $processed_connection_prompts[] = $post_prompt;
@@ -266,9 +280,10 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         return [
             'status' => 'success',
             'prompt' => [
-                'original' => $prompt,
+                'original' => $has_pii ? $pii['prompt']['original'] : $prompt,
                 'parsed' => $parsed_prompt
             ],
+            'pii' => $pii,
             'connections' => [
                 'parsed' => $connections,
                 'extracted' => [
@@ -293,7 +308,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         // Process location selections.
         foreach ( $selections['locations'] ?? [] as $location ) {
             if ( !in_array( $location['prompt'], $processed_prompts ) && $location['id'] !== 'ignore' ) {
-                $replacement = '@['. $location['label'] .']('. $location['id'] .')';
+                $replacement = '@[####]('. $location['id'] .')';
                 $parsed_prompt = str_replace( $location['prompt'], $replacement, $parsed_prompt );
 
                 $processed_prompts[] = $location['prompt'];
@@ -303,7 +318,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         // Process user selections.
         foreach ( $selections['users'] ?? [] as $user ) {
             if ( !in_array( $user['prompt'], $processed_prompts ) && $user['id'] !== 'ignore' ) {
-                $replacement = '@['. $user['label'] .']('. $user['id'] .')';
+                $replacement = '@[####]('. $user['id'] .')';
                 $parsed_prompt = str_replace( $user['prompt'], $replacement, $parsed_prompt );
 
                 $processed_prompts[] = $user['prompt'];
@@ -313,7 +328,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         // Process post selections.
         foreach ( $selections['posts'] ?? [] as $post ) {
             if ( !in_array( $post['prompt'], $processed_prompts ) && $post['id'] !== 'ignore' ) {
-                $replacement = '@['. $post['label'] .']('. $post['id'] .')';
+                $replacement = '@[####]('. $post['id'] .')';
                 $parsed_prompt = str_replace( $post['prompt'], $replacement, $parsed_prompt );
 
                 $processed_prompts[] = $post['prompt'];

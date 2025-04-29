@@ -1,19 +1,19 @@
 Show all baptized contacts. ==//== {"fields": [{"baptized": ["*"]}]}
 Show contacts not yet baptised. ==//== {"fields": [{"baptized": ["-*"]}]}
-Show records for baptised users @[Jane Doe (multiplier)](66) and @[Sam John](58). ==//== {"fields": [{"baptized": ["66", "58"]}]}
+Show records for baptised users @[####](66) and @[####](58). ==//== {"fields": [{"baptized": ["66", "58"]}]}
 
 Show all contacts who have been baptized by somebody. ==//== {"fields": [{"baptized_by": ["*"]}]}
 Show contacts not yet baptised by anybody. ==//== {"fields": [{"baptized_by": ["-*"]}]}
-Show records baptized by @[Sam John](58) and @[Jane Doe (multiplier)](66). ==//== {"fields": [{"baptized_by": ["58", "66"]}]}
+Show records baptized by @[####](58) and @[####](66). ==//== {"fields": [{"baptized_by": ["58", "66"]}]}
 
 Show all contacts who are coached by somebody. ==//== {"fields": [{"coached_by": ["*"]}]}
 Show contacts not yet coached by anybody. ==//== {"fields": [{"coached_by": ["-*"]}]}
-Show records coached by @[Sarah Jane](12) and @[Frank Frank (multiplier)](7). ==//== {"fields": [{"baptized_by": ["12", "7"]}]}
+Show records coached by @[####](12) and @[####](7). ==//== {"fields": [{"baptized_by": ["12", "7"]}]}
 
 Show all records with connections to other contacts. ==//== {"fields": [{"relation": ["*"]}]}
 Show contacts not connected to others. ==//== {"fields": [{"relation": ["-*"]}]}
-Show records which connect to @[Ali Hajjar (multiplier)](98). ==//== {"fields": [{"relation": ["98"]}]}
+Show records which connect to @[####](98). ==//== {"fields": [{"relation": ["98"]}]}
 
 Show all records with a group coach. ==//== {"fields": [{"group_coach": ["*"]}]}
 Show contacts without a group coach. ==//== {"fields": [{"group_coach": ["-*"]}]}
-Show records with group coaches @[Mark Twain](2) and @[Anne Frank (multiplier)](37). ==//== {"fields": [{"group_coach": ["2", "37"]}]}
+Show records with group coaches @[####](2) and @[####](37). ==//== {"fields": [{"group_coach": ["2", "37"]}]}

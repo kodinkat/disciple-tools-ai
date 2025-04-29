@@ -277,6 +277,7 @@
         },
       })
       .done(function (data) {
+        console.log(data);
 
         /**
          * Pause the flow accordingly, if multiple connection options are available.
@@ -506,6 +507,7 @@
         },
       })
       .done(function (data) {
+        console.log(data);
 
         // If successful, load points.
         if ((data?.status === 'success') && (data?.points)) {

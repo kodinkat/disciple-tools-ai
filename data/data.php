@@ -169,7 +169,7 @@ class Disciple_Tools_AI_Data {
     }
 
     public function dt_ai_connection_specs( $connection_specs ): array {
-        
+
         /**
          * Load the various parts which will eventually be used
          * to construct the connection generation model specification.
@@ -188,13 +188,13 @@ class Disciple_Tools_AI_Data {
 
         $examples = [];
         $examples[] = 'Examples';
-        foreach ( ['connections', 'locations'] as $connection_type ) {
+        foreach ( ['connections', 'locations', 'communication_channels'] as $connection_type ) {
             $path = $connections_dir . '2-examples/'. $connection_type .'/examples.txt';
             if ( file_exists( $path ) ) {
                 $examples = array_merge( $examples, $this->reshape_examples( $this->get_data( $path ), false ) );
             }
         }
- 
+
         /**
          * Finally, build and return required specification shape.
          */
