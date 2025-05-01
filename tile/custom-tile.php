@@ -19,9 +19,6 @@ class Disciple_Tools_AI_Tile
     }
 
     public function dt_site_scripts(): void {
-        dt_theme_enqueue_script( 'jquery-mentions', 'dt-core/dependencies/jquery-mentions-input/jquery.mentionsInput.min.js', array( 'jquery' ), true );
-        dt_theme_enqueue_script( 'jquery-mentions-elastic', 'dt-core/dependencies/jquery-mentions-input/lib/jquery.elastic.min.js', array( 'jquery' ), true );
-        dt_theme_enqueue_style( 'jquery-mentions-css', 'dt-core/dependencies/jquery-mentions-input/jquery.mentionsInput.css', array() );
     }
 
     /**
@@ -161,13 +158,77 @@ class Disciple_Tools_AI_Tile
     }
 
     public function dt_ai_action_bar_buttons( $post_type ): void {
-        $this->dt_site_scripts();
         ?>
-        <input id="dt_ai_filter_prompt" name="dt_ai_filter_prompt" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" />
-        <a id="dt_ai_filter_prompt_button" class="button" style="padding-right: 4px;">
-            <img class="dt-white-icon" style="display: inline-block;" src="<?php echo esc_html( get_template_directory_uri() . '/dt-assets/images/speak.svg' ) ?>" alt="" />
-        </a>
-        <span id="dt_ai_filter_prompt_spinner" class="loading-spinner active" style="display: none;"></span>
+        <style>
+            /* ===== Search & Filter ===== */
+            #ai-search-filter {
+            }
+
+            #ai-search-filter:not(:has(.filters)) {
+            }
+
+            #ai-search-filter:has(.filters.hidden) {
+            }
+
+            #ai-search-bar {
+                width: 100%;
+            }
+
+            #ai-search-filter,
+            #ai-search-bar {
+                background: #fff;
+            }
+
+            #ai-search-bar {
+                position: relative;
+                display: flex;
+                flex-wrap: wrap;
+                z-index: 1;
+            }
+
+            #ai-search {
+                margin: var(--search-margin-block);
+                flex-grow: 1;
+                min-width: 1rem;
+                font-size: 1.25rem;
+                padding-left: 10px;
+                padding-right: 10px;
+                height: var(--search-input-height);
+            }
+
+            #ai-search-bar button.ai-clear-button {
+                position: absolute;
+                inset-inline-end: 1.75rem;
+                top: 0.4rem;
+                border: 0;
+                background-color: #FFFFFF;
+                padding: 2px;
+                height: var(--search-input-height);
+            }
+
+            #ai-search-bar button.ai-filter-button {
+                position: absolute;
+                inset-inline-end: 0.5rem;
+                top: 0.4rem;
+                border: 2px;
+                background-color: #FFFFFF;
+                padding: 2px;
+                height: var(--search-input-height);
+            }
+            /* ===== Search & Filter ===== */
+        </style>
+
+        <div id="ai-search-filter">
+            <div id="ai-search-bar">
+                <input type="text" id="ai-search" placeholder="<?php esc_html_e( 'Describe list to show...', 'disciple-tools-ai' ); ?>" />
+                <button id="ai-clear-button" style="display: none;" class="ai-clear-button mdi mdi-close" onclick="clear_ai_filter();"></button>
+                <button class="ai-filter-button" onclick="create_ai_filter();">
+                  <i id="ai_filter_icon" class="mdi mdi-star-four-points-outline"></i>
+                  <span id="ai_filter_spinner" style="display: none; height: 16px; width: 16px" class="loading-spinner active"></span>
+                </button>
+            </div>
+        </div>
+
         <script>
             jQuery(document).ready(function ($) {
 
@@ -177,233 +238,473 @@ class Disciple_Tools_AI_Tile
                     'root' => esc_url_raw( rest_url() ),
                     'nonce' => wp_create_nonce( 'wp_rest' ),
                     'translations' => [
-                        'custom_filter' => __( 'Custom AI Filter', 'disciple-tools-ai' )
+                        'custom_filter' => __( 'Custom AI Filter', 'disciple-tools-ai' ),
+                        'multiple_options' => [
+                            'title' => __( 'Multiple Options Detected', 'disciple-tools-ai' ),
+                            'locations' => __( 'Locations', 'disciple-tools-ai' ),
+                            'users' => __( 'Users', 'disciple-tools-ai' ),
+                            'posts' => __( 'Posts', 'disciple-tools-ai' ),
+                            'ignore_option' => __( '-- Ignore --', 'disciple-tools-ai' ),
+                            'submit_but' => __( 'Submit', 'disciple-tools-ai' ),
+                            'close_but' => __( 'Close', 'disciple-tools-ai' )
+                        ]
                     ]
                 ]) ?>][0]
-
-                /**
-                 * Hide existing theme search fields.
-                 */
-
-                $('.search-wrapper').hide();
-                $('#search').hide();
 
                 /**
                  * Proceed with AI filter prompt setup.
                  */
 
-                let searchUsersPromise = null;
-                $('#dt_ai_filter_prompt').mentionsInput({
-                    onDataRequest: (mode, query, callback) => {
-                        if (searchUsersPromise && window.lodash.get(searchUsersPromise, 'readyState') !== 4) {
-                            searchUsersPromise.abort('abortPromise');
-                        }
+                document.getElementById('ai-search').addEventListener('keyup', function(e) {
+                    e.preventDefault();
 
-                        searchUsersPromise = window.API.search_users(query);
+                    if (e.key === 'Enter') { // Enter key pressed.
+                        create_ai_filter();
 
-                        searchUsersPromise
-                            .then((userResponse) => {
+                    } else { // Manage field clearing option.
+                        show_ai_filter_clear_option();
+                    }
+                });
 
-                                let data = [];
+                window.show_ai_filter_clear_option = () => {
+                    const text = document.getElementById('ai-search').value;
+                    const clear_button = document.getElementById('ai-clear-button');
 
-                                // Search location grids by name.
-                                window.API.search_location_grid_by_name(query)
-                                .then((locationResponse) => {
+                    if (!text && clear_button.style.display === 'block') {
+                        clear_button.setAttribute('style', 'display: none;');
 
-                                    // Capture users.
-                                    userResponse.forEach((user) => {
-                                        data.push({
-                                            id: user.ID,
-                                            name: user.name,
-                                            type: settings.post_type,
-                                            avatar: user.avatar
-                                        });
-                                    });
+                    } else if (text && clear_button.style.display === 'none') {
+                        clear_button.setAttribute('style', 'display: block;');
+                    }
+                }
 
-                                    // Capture locations.
-                                    locationResponse.location_grid.forEach((location) => {
-                                        data.push({
-                                            id: location.ID,
-                                            name: location.name,
-                                            type: settings.post_type,
-                                            avatar: null
-                                        });
-                                    });
+                window.clear_ai_filter = () => {
+                    document.getElementById('ai-search').value = '';
+                }
 
-                                    // Sort data array entries by object name.
-                                    data.sort((a, b) => {
-                                        const aName = a.name.toUpperCase();
-                                        const bName = b.name.toUpperCase();
+                window.create_ai_filter = () => {
+                    const text = document.getElementById('ai-search').value;
 
-                                        if (aName < bName) {
-                                            return -1;
+                    if (!text) {
+                        return;
+                    }
 
-                                        } else if (aName > bName) {
-                                            return 1;
+                    const dt_ai_filter_prompt_spinner = $('#ai_filter_spinner');
+                    const dt_ai_filter_prompt_button = $('#ai_filter_icon');
 
-                                        } else {
-                                            return 0;
-                                        }
-                                    });
+                    dt_ai_filter_prompt_button.fadeOut('fast', () => {
+                        dt_ai_filter_prompt_spinner.fadeIn('slow', () => {
 
-                                    callback.call(this, data);
+                            fetch(`${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-WP-Nonce': settings.nonce // Include the nonce in the headers
+                                },
+                                body: JSON.stringify({
+                                    prompt: text,
+                                    post_type: settings.post_type
                                 })
-                                .catch((err) => {
-                                    console.error(err);
-                                });
-
                             })
-                            .catch((err) => {
-                                console.error(err);
+                            .then(response => response.json())
+                            .then(response => {
+                                console.log(response);
+
+                                /**
+                                 * Pause the flow accordingly, if multiple connection options are available.
+                                 * If so, then display modal with connection options.
+                                 */
+
+                                if ((response?.status === 'multiple_options_detected') && (response?.multiple_options)) {
+                                    window.show_multiple_options_modal(response.multiple_options);
+
+                                } else if ((response?.status === 'success') && (response?.filter)) {
+
+                                    create_custom_filter(response.filter);
+
+                                    // Stop spinning....
+                                    document.getElementById('ai_filter_spinner').style.display = 'none';
+                                    document.getElementById('ai_filter_icon').style.display = 'inline-block';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+
+                                dt_ai_filter_prompt_spinner.fadeOut('fast', () => {
+                                    dt_ai_filter_prompt_button.fadeIn('slow');
+                                    if ( window.SHAREDFUNCTIONS?.empty_list ) {
+                                        window.SHAREDFUNCTIONS.empty_list();
+                                    }
+                                });
                             });
-                    },
-                    templates: {
-                        mentionItemSyntax: function (data) {
-                            return `[${data.value}](${data.id})`;
-                        }
-                    },
-                    showAvatars: true,
-                    minChars: 0
-                });
 
-                const getMentionedUsers = (callback) => {
-                    $('#dt_ai_filter_prompt').mentionsInput('getMentions', function (data) {
-                        callback(data);
+                        });
                     });
-                };
+                }
 
-                const getCommentWithMentions = (callback) => {
-                    $('#dt_ai_filter_prompt').mentionsInput('val', function (text) {
-                        callback(text);
-                    });
-                };
+                window.show_multiple_options_modal = (multiple_options) => {
+                    const modal = $('#modal-small');
+                    if (modal) {
 
-                document.querySelector('.mentions-input-box').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelector('#dt_ai_filter_prompt').focus();
-                });
+                        $(modal).find('#modal-small-title').html(`${window.lodash.escape(settings.translations.multiple_options.title)}`);
 
-                const create_filter_spinner = $('#dt_ai_filter_prompt_spinner');
-                document.querySelector('#dt_ai_filter_prompt_button').addEventListener('click', (e) => {
-                    e.preventDefault();
+                        /**
+                         * Location Options.
+                         */
 
-                    getCommentWithMentions((data) => {
-                        if (data) {
-                            console.log(data);
+                        let locations_html = '';
+                        if (multiple_options?.locations && multiple_options.locations.length > 0) {
 
-                            const dt_ai_filter_prompt_button = $('#dt_ai_filter_prompt_button');
-                            dt_ai_filter_prompt_button.fadeOut('fast', () => {
-                                create_filter_spinner.fadeIn('slow', () => {
+                            locations_html += `
+                                <h4>${window.lodash.escape(settings.translations.multiple_options.locations)}</h4>
+                                <table class="widefat striped">
+                                    <tbody class="ai-locations">
+                              `;
 
-                                    fetch(`${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-WP-Nonce': settings.nonce // Include the nonce in the headers
-                                        },
-                                        body: JSON.stringify({
-                                            prompt: data,
-                                            post_type: settings.post_type
-                                        })
-                                    })
-                                    .then(response => response.json())
-                                    .then(response => {
-                                        console.log(response);
+                            multiple_options.locations.forEach((location) => {
+                                if (location?.prompt && location?.options) {
+                                    locations_html += `
+                                        <tr>
+                                          <td style="vertical-align: top;">
+                                            ${window.lodash.escape(location.prompt)}
+                                            <input class="prompt" type="hidden" value="${location.prompt}" />
+                                          </td>
+                                          <td>
+                                            <select class="options">`;
 
-                                        /**
-                                         * Swap spinning widget back to execution button.
-                                         */
+                                    locations_html += `<option value="ignore">${window.lodash.escape(settings.translations.multiple_options.ignore_option)}</option>`;
 
-                                        create_filter_spinner.fadeOut('fast', () => {
-                                            dt_ai_filter_prompt_button.fadeIn('slow');
-                                        });
-
-                                        /**
-                                         * Assuming valid fields have been generated and required shared
-                                         * functions are present, proceed with custom filter creation and
-                                         * list refresh.
-                                         */
-
-                                        if (response?.fields && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
-
-                                            /**
-                                             * First, attempt to identify labels to be used based on returned
-                                             * fields shape; otherwise, labels shall remain blank.
-                                             */
-
-                                            let labels = [];
-                                            if (Array.isArray(response.fields) && window.SHAREDFUNCTIONS?.create_name_value_label) {
-                                                response.fields.forEach((field) => {
-                                                    for (const [key, filters] of Object.entries(field)) {
-
-                                                        if (key && Array.isArray(filters)) {
-                                                            filters.forEach((filter) => {
-
-                                                                const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, filter, isNaN(filter) ? filter : '', window?.list_settings);
-                                                                if (newLabel) {
-                                                                    labels.push(newLabel);
-                                                                }
-
-                                                            });
-                                                        }
-                                                    }
-                                                });
-                                            }
-
-                                            /**
-                                             * Determine status field to be appended to filter fields.
-                                             */
-
-                                            if ( window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
-
-                                                // Determine if archived records are to be shown.
-                                                const show_archived_records = window.SHAREDFUNCTIONS.get_json_from_local_storage(
-                                                    'list_archived_switch_status',
-                                                    false,
-                                                    settings.post_type
-                                                );
-
-                                                // Package archived records status flag.
-                                                let status = {};
-                                                status[settings.settings.status_field.status_key] = [ `${show_archived_records ? '' : '-'}${settings.settings.status_field.archived_key}` ];
-
-                                                // Finally append to filter fields.
-                                                if ( Array.isArray( response.fields ) ) {
-                                                    response.fields.push( status );
-                                                }
-                                            }
-
-                                            /**
-                                             * Proceed with Custom AI Filter creation and list refresh.
-                                             */
-
-                                            window.SHAREDFUNCTIONS.reset_split_by_filters();
-                                            window.SHAREDFUNCTIONS.add_custom_filter(
-                                                settings.translations['custom_filter'],
-                                                'custom-filter',
-                                                {
-                                                    fields: response.fields
-                                                },
-                                                labels
-                                            );
+                                    location.options.forEach((option) => {
+                                        if (option?.id && option?.label) {
+                                            locations_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
                                         }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error:', error);
-
-                                        create_filter_spinner.fadeOut('fast', () => {
-                                            dt_ai_filter_prompt_button.fadeIn('slow');
-                                            if ( window.SHAREDFUNCTIONS?.empty_list ) {
-                                                window.SHAREDFUNCTIONS.empty_list();
-                                            }
-                                        });
                                     });
 
-                                });
+                                    locations_html += `</select>
+                                      </td>
+                                    </tr>
+                                    `;
+                                }
+                            });
+
+                            locations_html += `
+                                </tbody>
+                            </table>
+                            `;
+                        }
+
+                        /**
+                         * User Options.
+                         */
+
+                        let users_html = '';
+                        if (multiple_options?.users && multiple_options.users.length > 0) {
+
+                            users_html += `
+                                <h4>${window.lodash.escape(settings.translations.multiple_options.users)}</h4>
+                                <table class="widefat striped">
+                                    <tbody class="ai-users">
+                            `;
+
+                            multiple_options.users.forEach((user) => {
+                                if (user?.prompt && user?.options) {
+                                    users_html += `
+                                        <tr>
+                                          <td style="vertical-align: top;">
+                                            ${window.lodash.escape(user.prompt)}
+                                            <input class="prompt" type="hidden" value="${user.prompt}" />
+                                          </td>
+                                          <td>
+                                            <select class="options">`;
+
+                                    users_html += `<option value="ignore">${window.lodash.escape(settings.translations.multiple_options.ignore_option)}</option>`;
+
+                                    user.options.forEach((option) => {
+                                        if (option?.id && option?.label) {
+                                            users_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
+                                        }
+                                    });
+
+                                    users_html += `</select>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }
+                            });
+
+                            users_html += `
+                                </tbody>
+                            </table>
+                            `;
+                        }
+
+                        /**
+                         * Post Options.
+                         */
+
+                        let posts_html = '';
+                        if (multiple_options?.posts && multiple_options.posts.length > 0) {
+
+                            posts_html += `
+                                <h4>${window.lodash.escape(settings.translations.multiple_options.posts)}</h4>
+                                <table class="widefat striped">
+                                    <tbody class="ai-posts">
+                            `;
+
+                            multiple_options.posts.forEach((post) => {
+                                if (post?.prompt && post?.options) {
+                                    posts_html += `
+                                        <tr>
+                                          <td style="vertical-align: top;">
+                                            ${window.lodash.escape(post.prompt)}
+                                            <input class="prompt" type="hidden" value="${post.prompt}" />
+                                          </td>
+                                          <td>
+                                            <select class="options">`;
+
+                                    posts_html += `<option value="ignore">${window.lodash.escape(settings.translations.multiple_options.ignore_option)}</option>`;
+
+                                    post.options.forEach((option) => {
+                                        if (option?.id && option?.label) {
+                                            posts_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
+                                        }
+                                    });
+
+                                    posts_html += `</select>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }
+                            });
+
+                            posts_html += `
+                                    </tbody>
+                                </table>
+                            `;
+                        }
+
+                        let html = `
+                            <br>
+                            ${locations_html}
+                            <br>
+                            ${users_html}
+                            <br>
+                            ${posts_html}
+                            <br>
+                            <button class="button" aria-label="submit" type="button" id="multiple_options_submit">
+                                <span aria-hidden="true">${window.lodash.escape(settings.translations.multiple_options.submit_but)}</span>
+                            </button>
+                            <button class="button" data-close aria-label="submit" type="button">
+                                <span aria-hidden="true">${window.lodash.escape(settings.translations.multiple_options.close_but)}</span>
+                            </button>
+                        `;
+
+                        $(modal).find('#modal-small-content').html(html);
+
+                        $(modal).foundation('open');
+                        $(modal).css('top', '150px');
+
+                        $(document).on('closed.zf.reveal', '[data-reveal]', function (evt) {
+                            document.getElementById('ai_filter_spinner').style.display = 'none';
+                            document.getElementById('ai_filter_icon').style.display = 'inline-block';
+
+                            // Remove click event listener, to avoid a build-up and duplication of modal selection submissions.
+                            $(document).off('click', '#multiple_options_submit');
+                        });
+
+                        $(document).on('click', '#multiple_options_submit', function (evt) {
+                            window.handle_multiple_options_submit(modal);
+                        });
+                    }
+                }
+
+                window.handle_multiple_options_submit = (modal) => {
+
+                    // Re-submit query, with specified selections.
+                    const payload = {
+                        "prompt": document.getElementById('ai-search').value,
+                        "post_type": settings.post_type,
+                        "selections": window.package_multiple_options_selections()
+                    };
+
+                    // Close modal and proceed with re-submission.
+                    $(modal).foundation('close');
+
+                    // Ensure spinner is still spinning.
+                    document.getElementById('ai_filter_spinner').style.display = 'inline-block';
+                    document.getElementById('ai_filter_icon').style.display = 'none';
+
+                    // Submit selections.
+                    jQuery.ajax({
+                        type: "POST",
+                        data: JSON.stringify(payload),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        url: `${wpApiShare.root}disciple-tools-ai/v1/dt-ai-create-filter`,
+                        beforeSend: function(xhr) {
+                            xhr.setRequestHeader('X-WP-Nonce', settings.nonce);
+                        }
+                    })
+                    .done(function (data) {
+                        console.log(data);
+
+                        // If successful, load points.
+                        if ((data?.status === 'success') && (data?.filter)) {
+                            create_custom_filter(data.filter);
+                        }
+
+                        // Stop spinning....
+                        document.getElementById('ai_filter_spinner').style.display = 'none';
+                        document.getElementById('ai_filter_icon').style.display = 'inline-block';
+
+                    })
+                    .fail(function (err) {
+                        console.log('error')
+                        console.log(err)
+
+                        document.getElementById('ai_filter_spinner').style.display = 'none';
+                        document.getElementById('ai_filter_icon').style.display = 'inline-block';
+                    });
+                }
+
+                window.package_multiple_options_selections = () => {
+                    let selections = {};
+
+                    /**
+                     * Locations.
+                     */
+
+                    const locations = $('tbody.ai-locations');
+                    if (locations) {
+                        selections['locations'] = [];
+                        $(locations).find('tr').each((idx, tr) => {
+                            const prompt = $(tr).find('input.prompt').val();
+                            const selected_opt_id = $(tr).find('select.options option:selected').val();
+                            const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+                            selections['locations'].push({
+                                'prompt': prompt,
+                                'id': selected_opt_id,
+                                'label': selected_opt_label
+                            });
+                        });
+                    }
+
+                    /**
+                     * Users.
+                     */
+
+                    const users = $('tbody.ai-users');
+                    if (users) {
+                        selections['users'] = [];
+                        $(users).find('tr').each((idx, tr) => {
+                            const prompt = $(tr).find('input.prompt').val();
+                            const selected_opt_id = $(tr).find('select.options option:selected').val();
+                            const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+                            selections['users'].push({
+                                'prompt': prompt,
+                                'id': selected_opt_id,
+                                'label': selected_opt_label
+                            });
+                         });
+                    }
+
+                    /**
+                     * Posts.
+                     */
+
+                    const posts = $('tbody.ai-posts');
+                    if (posts) {
+                        selections['posts'] = [];
+                        $(posts).find('tr').each((idx, tr) => {
+                            const prompt = $(tr).find('input.prompt').val();
+                            const selected_opt_id = $(tr).find('select.options option:selected').val();
+                            const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+                            selections['posts'].push({
+                                'prompt': prompt,
+                                'id': selected_opt_id,
+                                'label': selected_opt_label
+                            });
+                        });
+                    }
+
+                    return selections;
+                }
+
+                window.create_custom_filter = (filter) => {
+
+                    /**
+                     * Assuming valid fields have been generated and required shared
+                     * functions are present, proceed with custom filter creation and
+                     * list refresh.
+                     */
+
+                    if (filter?.fields && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
+
+                        /**
+                         * First, attempt to identify labels to be used based on returned
+                         * fields shape; otherwise, labels shall remain blank.
+                         */
+
+                        let labels = [];
+                        if (Array.isArray(filter.fields) && window.SHAREDFUNCTIONS?.create_name_value_label) {
+                            filter.fields.forEach((field) => {
+                                for (const [key, filters] of Object.entries(field)) {
+
+                                    if (key && Array.isArray(filters)) {
+                                        filters.forEach((filter) => {
+
+                                            const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, filter, isNaN(filter) ? filter : '', window?.list_settings);
+                                            if (newLabel) {
+                                                labels.push(newLabel);
+                                            }
+
+                                        });
+                                    }
+                                }
                             });
                         }
-                    });
-                });
+
+                        /**
+                         * Determine status field to be appended to filter fields.
+                         */
+
+                        if ( window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
+
+                            // Determine if archived records are to be shown.
+                            const show_archived_records = window.SHAREDFUNCTIONS.get_json_from_local_storage(
+                                'list_archived_switch_status',
+                                false,
+                                settings.post_type
+                            );
+
+                            // Package archived records status flag.
+                            let status = {};
+                            status[settings.settings.status_field.status_key] = [ `${show_archived_records ? '' : '-'}${settings.settings.status_field.archived_key}` ];
+
+                            // Finally append to filter fields.
+                            if ( Array.isArray( filter.fields ) ) {
+                                filter.fields.push( status );
+                            }
+                        }
+
+                        /**
+                         * Proceed with Custom AI Filter creation and list refresh.
+                         */
+
+                        window.SHAREDFUNCTIONS.reset_split_by_filters();
+                        window.SHAREDFUNCTIONS.add_custom_filter(
+                            settings.translations['custom_filter'],
+                            'custom-filter',
+                            {
+                                fields: filter.fields
+                            },
+                            labels
+                        );
+                    }
+                }
             });
         </script>
         <?php

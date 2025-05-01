@@ -5,6 +5,246 @@ if ( !defined( 'ABSPATH' ) ){
 
 class Disciple_Tools_AI_API {
 
+    public static function list_posts( string $post_type, string $prompt ): array {
+
+        /**
+         * First, identify any connections within incoming prompt; especially
+         * the ones with multiple options; as these will need to be handled
+         * separately, in a different flow, causing the client to select which
+         * option to use.
+         */
+
+        $locations = [];
+        $multiple_locations = [];
+
+        $users = [];
+        $multiple_users = [];
+
+        $posts = [];
+        $multiple_posts = [];
+
+        /**
+         * Before submitting to LLM for analysis, ensure to obfuscate any PII.
+         */
+
+        $pii = self::parse_prompt_for_pii( $prompt );
+        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
+        if ( $has_pii ) {
+            $prompt = $pii['prompt']['obfuscated'];
+        }
+
+        /**
+         * Proceed with parsing prompt for connections.
+         */
+
+        $connections = self::parse_prompt_for_connections( $prompt );
+
+        // Extract any locations from identified connections.
+        if ( !empty( $connections['locations'] ) ) {
+            $locations = self::parse_locations_for_ids( $connections['locations'], $pii['mappings'] ?? [] );
+
+            // Identify locations with multiple options.
+            $multiple_locations = array_filter( $locations, function( $location ) {
+                return count( $location['options'] ) > 1;
+            } );
+        }
+
+        // Extract any users (takes priority over posts) or posts from identified connections.
+        if ( !empty( $connections['connections'] ) ) {
+
+            /**
+             * Users.
+             */
+
+            // Extract any users from identified connections.
+            $users = self::parse_connections_for_users( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
+
+            // Identify users with multiple options.
+            $multiple_users = array_filter( $users, function( $user ) {
+                return count( $user['options'] ) > 1;
+            } );
+
+            /**
+             * Posts.
+             */
+
+            // Extract any post-names from identified connections.
+            $posts = self::parse_connections_for_post_names( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
+
+            // Identify posts with multiple options.
+            $multiple_posts = array_filter( $posts, function( $post ) {
+                return count( $post['options'] ) > 1;
+            } );
+        }
+
+        /**
+         * Determine if flow is to be paused, due to multiple options.
+         */
+
+        if ( count( array_merge( $multiple_locations, $multiple_users, $multiple_posts ) ) > 0 ) {
+            return [
+                'status' => 'multiple_options_detected',
+                'multiple_options' => [
+                    'locations' => $multiple_locations,
+                    'users' => $multiple_users,
+                    'posts' => $multiple_posts
+                ]
+            ];
+        }
+
+        /**
+         * If no multiple options are detected, proceed with parsing prompt
+         * and encode identified connections into the required filter format.
+         * By this point, connections should have, at most, a single option, having gone through
+         * the multiple options client selection flow.
+         */
+
+        $parsed_prompt = $prompt;
+        $processed_connection_prompts = [];
+
+        // Process locations.
+        foreach ( $locations as $location ) {
+            $location_prompt = ( $has_pii && isset( $location['pii_prompt'] ) ) ? $location['pii_prompt'] : $location['prompt'];
+            if ( !in_array( $location_prompt, $processed_connection_prompts ) && !empty( $location['options'] ) ) {
+                $option = $location['options'][0];
+                $option_formatted = '@[####]('. $option['id'] .')';
+                $parsed_prompt = str_replace( $location_prompt, $option_formatted, $parsed_prompt );
+
+                $processed_connection_prompts[] = $location_prompt;
+            }
+        }
+
+        // Process users.
+        foreach ( $users as $user ) {
+            $user_prompt = ( $has_pii && isset( $user['pii_prompt'] ) ) ? $user['pii_prompt'] : $user['prompt'];
+            if ( !in_array( $user_prompt, $processed_connection_prompts ) && !empty( $user['options'] ) ) {
+                $option = $user['options'][0];
+                $option_formatted = '@[####]('. $option['id'] .')';
+                $parsed_prompt = str_replace( $user_prompt, $option_formatted, $parsed_prompt );
+
+                $processed_connection_prompts[] = $user_prompt;
+            }
+        }
+
+        // Process posts.
+        foreach ( $posts as $post ) {
+            $post_prompt = ( $has_pii && isset( $post['pii_prompt'] ) ) ? $post['pii_prompt'] : $post['prompt'];
+            if ( !in_array( $post_prompt, $processed_connection_prompts ) && !empty( $post['options'] ) ) {
+                $option = $post['options'][0];
+                $option_formatted = '@[####]('. $option['id'] .')';
+                $parsed_prompt = str_replace( $post_prompt, $option_formatted, $parsed_prompt );
+
+                $processed_connection_prompts[] = $post_prompt;
+            }
+        }
+
+        /**
+         * Almost home! Now we need to create the final query filter, based on parsed prompt.
+         */
+
+        $filter =  self::handle_create_filter_request( $parsed_prompt, $post_type );
+
+        /**
+         * Next, using the inferred filter, query the posts.
+         */
+
+        $list_posts = [];
+        if ( !is_wp_error( $filter ) && isset( $filter['fields'] ) ) {
+            $list = DT_Posts::list_posts( $post_type, [
+                'fields' => $filter['fields']
+            ]);
+
+            $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
+        }
+
+        return [
+            'status' => 'success',
+            'prompt' => [
+                'original' => $has_pii ? $pii['prompt']['original'] : $prompt,
+                'parsed' => $parsed_prompt
+            ],
+            'pii' => $pii,
+            'connections' => [
+                'parsed' => $connections,
+                'extracted' => [
+                    'locations' => $locations,
+                    'users' => $users,
+                    'posts' => $posts
+                ]
+            ],
+            'filter' => $filter,
+            'posts' => $list_posts
+        ];
+    }
+
+    public static function list_posts_with_selections( string $post_type, string $prompt, array $selections ): array {
+        $processed_prompts = [];
+        $parsed_prompt = $prompt;
+
+        /**
+         * First, update prompt with selected replacements.
+         */
+
+        // Process location selections.
+        foreach ( $selections['locations'] ?? [] as $location ) {
+            if ( !in_array( $location['prompt'], $processed_prompts ) && $location['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $location['id'] .')';
+                $parsed_prompt = str_replace( $location['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $location['prompt'];
+            }
+        }
+
+        // Process user selections.
+        foreach ( $selections['users'] ?? [] as $user ) {
+            if ( !in_array( $user['prompt'], $processed_prompts ) && $user['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $user['id'] .')';
+                $parsed_prompt = str_replace( $user['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $user['prompt'];
+            }
+        }
+
+        // Process post selections.
+        foreach ( $selections['posts'] ?? [] as $post ) {
+            if ( !in_array( $post['prompt'], $processed_prompts ) && $post['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $post['id'] .')';
+                $parsed_prompt = str_replace( $post['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $post['prompt'];
+            }
+        }
+
+        /**
+         * Almost home! Now we need to create the final query filter, based on parsed prompt.
+         */
+
+        $filter =  self::handle_create_filter_request( $parsed_prompt, $post_type );
+
+        /**
+         * Next, using the inferred filter, query the posts.
+         */
+
+        $list_posts = [];
+        if ( !is_wp_error( $filter ) && isset( $filter['fields'] ) ) {
+            $list = DT_Posts::list_posts( $post_type, [
+                'fields' => $filter['fields']
+            ]);
+
+            $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
+        }
+
+        return [
+            'status' => 'success',
+            'prompt' => [
+                'original' => $prompt,
+                'parsed' => $parsed_prompt
+            ],
+            'filter' => $filter,
+            'posts' => $list_posts
+        ];
+    }
+
     public static function parse_prompt_for_pii( $prompt ): array {
         if ( !isset( $prompt ) ) {
             return [];
