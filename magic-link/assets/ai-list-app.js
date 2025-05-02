@@ -33,11 +33,19 @@ function create_filter() {
     .then(json => {
       console.log(json);
 
-      // Hide processing spinner.....
-      temp_spinner.setAttribute('class', 'loading-spinner inactive');
+      /**
+       * Pause the flow accordingly, if multiple connection options are available.
+       * If so, then display modal with connection options.
+       */
 
-      //....and refresh items list.
-      if (json?.posts) {
+      if ((json?.status === 'multiple_options_detected') && (json?.multiple_options)) {
+        show_multiple_options_modal(json.multiple_options);
+
+      } else if ((json?.status === 'success') && (json?.posts)) {
+
+        // Stop spinning....
+        temp_spinner.setAttribute('class', 'loading-spinner inactive');
+
         load_list_items(json.posts);
       }
 
@@ -66,6 +74,301 @@ function show_filter_clear_option() {
 
 function clear_filter() {
   document.getElementById('search').value = '';
+}
+
+function show_multiple_options_modal(multiple_options) {
+
+  const modal = $('#modal-small');
+  if (modal) {
+
+    $(modal).find('#modal-small-title').html(`${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.title)}`);
+
+    /**
+     * Location Options.
+     */
+
+    let locations_html = '';
+    if (multiple_options?.locations && multiple_options.locations.length > 0) {
+
+      locations_html += `
+        <h4>${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.locations)}</h4>
+        <table class="widefat striped">
+            <tbody class="ai-locations">
+      `;
+
+      multiple_options.locations.forEach((location) => {
+        if (location?.prompt && location?.options) {
+          locations_html += `
+            <tr>
+              <td style="vertical-align: top;">
+                ${window.lodash.escape(location.prompt)}
+                <input class="prompt" type="hidden" value="${location.prompt}" />
+              </td>
+              <td>
+                <select class="options">`;
+
+          locations_html += `<option value="ignore">${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.ignore_option)}</option>`;
+
+          location.options.forEach((option) => {
+            if (option?.id && option?.label) {
+              locations_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
+            }
+          });
+
+          locations_html += `</select>
+              </td>
+            </tr>
+            `;
+        }
+      });
+
+      locations_html += `
+            </tbody>
+        </table>
+        `;
+    }
+
+    /**
+     * User Options.
+     */
+
+    let users_html = '';
+    if (multiple_options?.users && multiple_options.users.length > 0) {
+
+      users_html += `
+          <h4>${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.users)}</h4>
+          <table class="widefat striped">
+              <tbody class="ai-users">
+      `;
+
+      multiple_options.users.forEach((user) => {
+        if (user?.prompt && user?.options) {
+          users_html += `
+            <tr>
+              <td style="vertical-align: top;">
+                ${window.lodash.escape(user.prompt)}
+                <input class="prompt" type="hidden" value="${user.prompt}" />
+              </td>
+              <td>
+                <select class="options">`;
+
+          users_html += `<option value="ignore">${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.ignore_option)}</option>`;
+
+          user.options.forEach((option) => {
+            if (option?.id && option?.label) {
+              users_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
+            }
+          });
+
+          users_html += `</select>
+                </td>
+            </tr>
+            `;
+        }
+      });
+
+      users_html += `
+            </tbody>
+        </table>
+        `;
+    }
+
+    /**
+     * Post Options.
+     */
+
+    let posts_html = '';
+    if (multiple_options?.posts && multiple_options.posts.length > 0) {
+
+      posts_html += `
+          <h4>${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.posts)}</h4>
+          <table class="widefat striped">
+              <tbody class="ai-posts">
+      `;
+
+      multiple_options.posts.forEach((post) => {
+        if (post?.prompt && post?.options) {
+          posts_html += `
+            <tr>
+              <td style="vertical-align: top;">
+                ${window.lodash.escape(post.prompt)}
+                <input class="prompt" type="hidden" value="${post.prompt}" />
+              </td>
+              <td>
+                <select class="options">`;
+
+          posts_html += `<option value="ignore">${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.ignore_option)}</option>`;
+
+          post.options.forEach((option) => {
+            if (option?.id && option?.label) {
+              posts_html += `<option value="${window.lodash.escape(option.id)}">${window.lodash.escape(option.label)}</option>`;
+            }
+          });
+
+          posts_html += `</select>
+                </td>
+            </tr>
+            `;
+        }
+      });
+
+      posts_html += `
+              </tbody>
+          </table>
+      `;
+    }
+
+    let html = `
+        <br>
+        ${locations_html}
+        <br>
+        ${users_html}
+        <br>
+        ${posts_html}
+        <br>
+        <button class="button" aria-label="submit" type="button" id="multiple_options_submit">
+            <span aria-hidden="true">${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.submit_but)}</span>
+        </button>
+        <button class="button" data-close aria-label="submit" type="button">
+            <span aria-hidden="true">${window.lodash.escape(window.dt_ai_obj.translations.multiple_options.close_but)}</span>
+        </button>
+    `;
+
+    $(modal).find('#modal-small-content').html(html);
+
+    $(modal).foundation('open');
+    $(modal).css('top', '150px');
+
+    $(document).on('closed.zf.reveal', '[data-reveal]', function (evt) {
+      let temp_spinner = document.getElementById('temp-spinner');
+      temp_spinner.setAttribute('class', 'loading-spinner inactive');
+
+      // Remove click event listener, to avoid a build-up and duplication of modal selection submissions.
+      $(document).off('click', '#multiple_options_submit');
+    });
+
+    $(document).on('click', '#multiple_options_submit', function (evt) {
+      window.handle_multiple_options_submit(modal);
+    });
+  }
+}
+
+function handle_multiple_options_submit(modal) {
+
+  // Re-submit query, with specified selections.
+  const url = jsObject.root + jsObject.parts.root + '/v1/' + jsObject.parts.type + '/create_filter';
+  const payload = {
+    action: 'get',
+    parts: jsObject.parts,
+    sys_type: jsObject.sys_type,
+    filter: {
+      prompt: document.getElementById('search').value,
+      post_type: jsObject.default_post_type,
+      selections: window.package_multiple_options_selections()
+    }
+  }
+
+  // Close modal and proceed with re-submission.
+  $(modal).foundation('close');
+
+  // Ensure spinner is still spinning.
+  let temp_spinner = document.getElementById('temp-spinner');
+  temp_spinner.setAttribute('class', 'loading-spinner active');
+
+  // Submit selections.
+  jQuery.ajax({
+    type: "POST",
+    data: JSON.stringify(payload),
+    contentType: "application/json; charset=utf-8",
+    dataType: "json",
+    url: url,
+    beforeSend: function(xhr) {
+      xhr.setRequestHeader('X-WP-Nonce', jsObject.nonce);
+    }
+  })
+  .done(function (data) {
+    console.log(data);
+
+    // Stop spinning....
+    temp_spinner.setAttribute('class', 'loading-spinner inactive');
+
+    // If successful, list posts.
+    if ((data?.status === 'success') && (data?.posts)) {
+      load_list_items(data.posts);
+    }
+  })
+  .fail(function (err) {
+    console.log('error')
+    console.log(err)
+
+    temp_spinner.setAttribute('class', 'loading-spinner inactive');
+  });
+}
+
+function package_multiple_options_selections() {
+  let selections = {};
+
+  /**
+   * Locations.
+   */
+
+  const locations = $('tbody.ai-locations');
+  if (locations) {
+    selections['locations'] = [];
+    $(locations).find('tr').each((idx, tr) => {
+      const prompt = $(tr).find('input.prompt').val();
+      const selected_opt_id = $(tr).find('select.options option:selected').val();
+      const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+      selections['locations'].push({
+        'prompt': prompt,
+        'id': selected_opt_id,
+        'label': selected_opt_label
+      });
+    });
+  }
+
+  /**
+   * Users.
+   */
+
+  const users = $('tbody.ai-users');
+  if (users) {
+    selections['users'] = [];
+    $(users).find('tr').each((idx, tr) => {
+      const prompt = $(tr).find('input.prompt').val();
+      const selected_opt_id = $(tr).find('select.options option:selected').val();
+      const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+      selections['users'].push({
+        'prompt': prompt,
+        'id': selected_opt_id,
+        'label': selected_opt_label
+      });
+    });
+  }
+
+  /**
+   * Posts.
+   */
+
+  const posts = $('tbody.ai-posts');
+  if (posts) {
+    selections['posts'] = [];
+    $(posts).find('tr').each((idx, tr) => {
+      const prompt = $(tr).find('input.prompt').val();
+      const selected_opt_id = $(tr).find('select.options option:selected').val();
+      const selected_opt_label = $(tr).find('select.options option:selected').text();
+
+      selections['posts'].push({
+        'prompt': prompt,
+        'id': selected_opt_id,
+        'label': selected_opt_label
+      });
+    });
+  }
+
+  return selections;
 }
 
 function load_list_items(posts) {

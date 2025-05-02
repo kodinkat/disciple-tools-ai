@@ -102,6 +102,21 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
 
         wp_enqueue_style( 'ml-ai-list-app-css', plugin_dir_url( __FILE__ ) . $css_path, null, filemtime( plugin_dir_path( __FILE__ ) . $css_path ) );
         wp_enqueue_script( 'ml-ai-list-app-js', plugin_dir_url( __FILE__ ) . $js_path, null, filemtime( plugin_dir_path( __FILE__ ) . $js_path ) );
+        wp_localize_script(
+            'ml-ai-list-app-js', 'dt_ai_obj', [
+                'translations' => [
+                    'multiple_options' => [
+                        'title' => __( 'Multiple Options Detected', 'disciple-tools-ai' ),
+                        'locations' => __( 'Locations', 'disciple-tools-ai' ),
+                        'users' => __( 'Users', 'disciple-tools-ai' ),
+                        'posts' => __( 'Posts', 'disciple-tools-ai' ),
+                        'ignore_option' => __( '-- Ignore --', 'disciple-tools-ai' ),
+                        'submit_but' => __( 'Submit', 'disciple-tools-ai' ),
+                        'close_but' => __( 'Close', 'disciple-tools-ai' )
+                    ]
+                ]
+            ]
+        );
 
         $dtwc_version = '0.6.6';
         wp_enqueue_style( 'dt-web-components-css', "https://cdn.jsdelivr.net/npm/@disciple.tools/web-components@$dtwc_version/src/styles/light.css", [], $dtwc_version ); // remove 'src' after v0.7
@@ -219,6 +234,17 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                     'item_saved' => esc_attr__( 'Item Saved', 'disciple-tools-ai' )
                 ]
             ] ) ?>][0];
+
+            document.getElementById('search').addEventListener('keyup', function(e) {
+                e.preventDefault();
+
+                if (e.key === 'Enter') { // Enter key pressed.
+                    create_filter();
+
+                } else { // Manage field clearing option.
+                    show_filter_clear_option();
+                }
+            });
         </script>
         <?php
     }
@@ -233,9 +259,9 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
 
                 <div id="search-filter">
                     <div id="search-bar">
-                        <input type="text" id="search" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" onkeyup="show_filter_clear_option();" />
+                        <input type="text" id="search" placeholder="<?php esc_html_e( 'Describe the list to show...', 'disciple-tools-ai' ); ?>" />
                         <button id="clear-button" style="display: none;" class="clear-button mdi mdi-close" onclick="clear_filter();"></button>
-                        <button class="filter-button mdi mdi-comment-outline" onclick="create_filter();"></button>
+                        <button class="filter-button mdi mdi-star-four-points-outline" onclick="create_filter();"></button>
                     </div>
                 </div>
 
@@ -264,7 +290,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
 
                     <div id="detail-content"></div>
                     <footer>
-                        <dt-button onclick="save_item(event)" type="submit" context="primary"><?php esc_html_e( 'Submit Update', 'disciple_tools' ) ?></dt-button>
+                        <dt-button onclick="save_item(event)" type="submit" context="primary"><?php esc_html_e( 'Submit Update', 'disciple-tools-ai' ) ?></dt-button>
                     </footer>
                 </form>
 
@@ -310,12 +336,12 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                         <div>
                             <textarea id="comments-text-area"
                                       style="resize: none;"
-                                      placeholder="<?php echo esc_html_x( 'Write your comment or note here', 'input field placeholder', 'disciple_tools' ) ?>"
+                                      placeholder="<?php echo esc_html_x( 'Write your comment or note here', 'input field placeholder', 'disciple-tools-ai' ) ?>"
                             ></textarea>
                         </div>
                         <div class="comment-button-container">
                             <button class="button loader" type="button" id="comment-button">
-                                <?php esc_html_e( 'Submit comment', 'disciple_tools' ) ?>
+                                <?php esc_html_e( 'Submit comment', 'disciple-tools-ai' ) ?>
                             </button>
                         </div>
                     </dt-tile>
@@ -326,6 +352,13 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
                 <div class="snackbar-item"></div>
             </template>
         </main>
+        <div class="reveal small" id="modal-small" data-v-offset="0" data-reveal>
+            <h3 id="modal-small-title"></h3>
+            <div id="modal-small-content"></div>
+            <button class="close-button" data-close aria-label="<?php esc_html_e( 'Close', 'disciple-tools-ai' ); ?>" type="button">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <?php
     }
 
@@ -408,23 +441,56 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
             $this->update_user_logged_in_state( $params['sys_type'], $params['parts']['post_id'] );
         }
 
-        $response = [];
         $prompt = $params['filter']['prompt'];
         $post_type = $params['filter']['post_type'];
 
-        // Request inference from dt ai create filter endpoint.
-        $filter = Disciple_Tools_AI_API::handle_create_filter_request( Disciple_Tools_AI_API::parse_prompt( $prompt, $post_type ), $post_type );
+        if ( isset( $params['filter']['selections'] ) ) {
+            return $this->handle_create_filter_with_selections_request( $post_type, $prompt, $params['filter']['selections'] );
+        } else {
+            return $this->handle_create_filter_request( $post_type, $prompt );
+        }
+    }
 
-        // Assuming we have a valid shape, generate required list.
-        if ( !is_wp_error( $filter ) && isset( $filter['fields'] ) ) {
-            $list = DT_Posts::list_posts( $post_type, [
-                'fields' => $filter['fields']
-            ]);
+    private function handle_create_filter_request( $post_type, $prompt ): array {
 
-            $response = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list : [];
+        /**
+         * If the initial response is multiple_options_detected, then return; otherwise,
+         * filter locations and then return.
+         */
+
+        $response = Disciple_Tools_AI_API::list_posts( $post_type, $prompt );
+        if ( isset( $response['status'] ) && $response['status'] === 'multiple_options_detected' ) {
+            return $response;
         }
 
-        return $response;
+        /**
+         * Finally, the finish line - return the response.
+         */
+
+        return [
+            'status' => 'success',
+            'prompt' => $response['prompt'] ?? [],
+            'pii' => $response['pii'] ?? [],
+            'connections' => $response['connections'] ?? [],
+            'filter' => $response['filter'] ?? [],
+            'posts' => $response['posts'] ?? []
+        ];
+    }
+
+    private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections ): array {
+
+        $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections );
+
+        /**
+         * Finally, the finish line - return the response.
+         */
+
+        return [
+            'status' => 'success',
+            'prompt' => $response['prompt'] ?? [],
+            'filter' => $response['filter'] ?? [],
+            'posts' => $response['posts'] ?? []
+        ];
     }
 
     public function get_post( WP_REST_Request $request ) {
