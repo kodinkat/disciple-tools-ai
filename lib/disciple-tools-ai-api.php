@@ -27,7 +27,8 @@ class Disciple_Tools_AI_API {
          * Before submitting to LLM for analysis, ensure to obfuscate any PII.
          */
 
-        $pii = self::parse_prompt_for_pii( $prompt );
+        $pii = self::parse_prompt_for_pii( $post_type, $prompt );
+
         $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
         if ( $has_pii ) {
             $prompt = $pii['prompt']['obfuscated'];
@@ -45,7 +46,7 @@ class Disciple_Tools_AI_API {
 
             // Identify locations with multiple options.
             $multiple_locations = array_filter( $locations, function( $location ) {
-                return count( $location['options'] ) > 1;
+                return count( $location['options'] ) > 0;
             } );
         }
 
@@ -61,7 +62,7 @@ class Disciple_Tools_AI_API {
 
             // Identify users with multiple options.
             $multiple_users = array_filter( $users, function( $user ) {
-                return count( $user['options'] ) > 1;
+                return count( $user['options'] ) > 0;
             } );
 
             /**
@@ -73,7 +74,7 @@ class Disciple_Tools_AI_API {
 
             // Identify posts with multiple options.
             $multiple_posts = array_filter( $posts, function( $post ) {
-                return count( $post['options'] ) > 1;
+                return count( $post['options'] ) > 0;
             } );
         }
 
@@ -142,7 +143,15 @@ class Disciple_Tools_AI_API {
          * Almost home! Now we need to create the final query filter, based on parsed prompt.
          */
 
-        $filter =  self::handle_create_filter_request( $parsed_prompt, $post_type );
+        $filter = self::handle_create_filter_request( $parsed_prompt, $post_type );
+
+        /**
+         * Ensure any remaining obfuscated entries are mapped back into plain prompt values, before executing returned filter fields.
+         */
+
+        if ( $has_pii ) {
+            $filter['fields'] = self::convert_filter_fields_from_obfuscated_to_plain( $filter['fields'], $pii['mappings'] );
+        }
 
         /**
          * Next, using the inferred filter, query the posts.
@@ -216,10 +225,28 @@ class Disciple_Tools_AI_API {
         }
 
         /**
+         * Before submitting to LLM for analysis, ensure to obfuscate any remaining PII.
+         */
+
+        $pii = self::parse_prompt_for_pii( $post_type, $parsed_prompt );
+
+        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
+
+        $parsed_prompt = $has_pii ? $pii['prompt']['obfuscated'] : $parsed_prompt;
+
+        /**
          * Almost home! Now we need to create the final query filter, based on parsed prompt.
          */
 
-        $filter =  self::handle_create_filter_request( $parsed_prompt, $post_type );
+        $filter = self::handle_create_filter_request( $parsed_prompt, $post_type );
+
+        /**
+         * Ensure any remaining obfuscated entries are mapped back into plain prompt values, before executing returned filter fields.
+         */
+
+        if ( $has_pii ) {
+            $filter['fields'] = self::convert_filter_fields_from_obfuscated_to_plain( $filter['fields'], $pii['mappings'] );
+        }
 
         /**
          * Next, using the inferred filter, query the posts.
@@ -240,76 +267,38 @@ class Disciple_Tools_AI_API {
                 'original' => $prompt,
                 'parsed' => $parsed_prompt
             ],
+            'pii' => $pii,
             'filter' => $filter,
             'posts' => $list_posts
         ];
     }
 
-    public static function parse_prompt_for_pii( $prompt ): array {
+    public static function parse_prompt_for_pii( $post_type, $prompt ): array {
         if ( !isset( $prompt ) ) {
             return [];
         }
 
-        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
-        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
-        $llm_endpoint = $llm_endpoint_root . '/PII';
-
         /**
-         * Support retries; in the event of initial faulty JSON shaped responses.
+         * Parse prompt for specific pii data tokens.
          */
 
-        $attempts = 0;
-        $pii = [];
-
-        while ( $attempts++ < 2 ) {
-            try {
-
-                // Dispatch to prediction guard for prompted pii inference.
-                $inferred = wp_remote_post( $llm_endpoint, [
-                    'method' => 'POST',
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $llm_api_key,
-                        'Content-Type' => 'application/json',
-                    ],
-                    'body' => json_encode( [
-                        'prompt' => $prompt,
-                        'replace' => false
-                    ] ),
-                    'timeout' => 30,
-                ] );
-
-                // Retry, in the event of an error.
-                if ( !is_wp_error( $inferred ) ) {
-
-                    // Ensure a valid JSON structure has been inferred; otherwise, retry!
-                    $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
-                    if ( isset( $inferred_response['checks'][0]['types_and_positions'], $inferred_response['checks'][0]['status'] ) && $inferred_response['checks'][0]['status'] === 'success' ) {
-
-                        // Extract inferred connections into final response and stop retry attempts.
-                        $pii = json_decode( str_replace( [ '\n', '\r' ], '', trim( $inferred_response['checks'][0]['types_and_positions'] ) ), true );
-                        if ( !empty( $pii ) ) {
-                            $attempts = 2;
-                        }
-                    }
-                }
-            } catch ( Exception $e ) {
-                dt_write_log( $e->getMessage() );
-            }
-        }
+        $pii = array_unique(
+            array_merge(
+                self::parse_prompt_for_pii_names( $post_type, $prompt ),
+                self::parse_prompt_for_pii_locations( $prompt ),
+                self::parse_prompt_for_pii_emails( $prompt ),
+                self::parse_prompt_for_pii_phone_numbers( $prompt )
+            )
+        );
 
         /**
          * If pii are detected, then create obfuscation mappings.
          */
 
         $pii_mappings = [];
-        foreach ( $pii ?? [] as $type_and_position ) {
-
-            // Ensure to ignore conflicting types, such as URLs, which conflict with EMAIL_ADDRESS.
-            if ( !in_array( $type_and_position['type'], ['URL'] ) ) {
-                $original = substr( $prompt, $type_and_position['start'], $type_and_position['end'] - $type_and_position['start'] );
-                $obfuscated = str_shuffle( $original . uniqid() );
-                $pii_mappings[$obfuscated] = $original;
-            }
+        foreach ( $pii ?? [] as $token ) {
+            $obfuscated = str_shuffle( $token . uniqid() );
+            $pii_mappings[$obfuscated] = $token;
         }
 
         /**
@@ -432,7 +421,7 @@ class Disciple_Tools_AI_API {
             }
         }
 
-        return $response;
+        return $response ?? [];
     }
 
     public static function parse_prompt_for_connections( $prompt ): array {
@@ -652,82 +641,140 @@ class Disciple_Tools_AI_API {
         );
     }
 
-    public static function parse_prompt( $prompt, $post_type, $offsets = [
-        'users' => 0,
-        'locations' => 0
-    ] ) {
-        $user_prefix = 'u::';
-        $location_prefix = 'l::';
+    private static function generate_post_names( $post_type ): array {
+        global $wpdb;
+
+        $names = $wpdb->get_results( $wpdb->prepare(
+            "SELECT DISTINCT post_title AS name
+            FROM $wpdb->posts
+            WHERE post_type = %s
+            ORDER BY name ASC",
+            $post_type
+        ), ARRAY_A );
+
+        return array_map( function( $name ) {
+            return $name['name'] ?? '';
+        }, $names );
+    }
+
+    private static function generate_location_names(): array {
+        global $wpdb;
+
+        $names = $wpdb->get_results( $wpdb->prepare(
+            "SELECT DISTINCT name
+            FROM $wpdb->dt_location_grid
+            ORDER BY name ASC"
+        ), ARRAY_A );
+
+        return array_map( function( $name ) {
+            return $name['name'] ?? '';
+        }, $names );
+    }
+
+    private static function parse_prompt_for_pii_names( $post_type, $prompt, $params = [] ): array {
+
+        // Capture required processing parameters.
+        $min_chars = $params['min_chars'] ?? 3;
+
+        // Fetch an array of all post names currently associated with the specified post-type.
+        $post_names = self::generate_post_names( $post_type );
+
+        // Explode incoming prompt into an array.
+        $prompt_array = explode( ' ', $prompt );
+
+        // Identify and return any potential pii names.
+        return array_filter( $prompt_array, function( $value ) use ( $post_names, $min_chars ) {
+            if ( strlen( $value ) > $min_chars ) {
+                return !empty( preg_grep( '/^'. $value .'/i', $post_names ) );
+            }
+
+            return false;
+        } );
+    }
+
+    private static function parse_prompt_for_pii_locations( $prompt,  $params = [] ): array {
+
+        // Capture required processing parameters.
+        $min_chars = $params['min_chars'] ?? 3;
+
+        // Fetch an array of all location names.
+        $location_names = self::generate_location_names();
+
+        // Explode incoming prompt into an array.
+        $prompt_array = explode( ' ', $prompt );
+
+        // Identify and return any potential pii locations.
+        return array_filter( $prompt_array, function( $value ) use ( $location_names, $min_chars ) {
+            if ( strlen( $value ) > $min_chars ) {
+                return !empty( preg_grep( '/^'. $value .'/i', $location_names ) );
+            }
+
+            return false;
+        } );
+    }
+
+    private static function parse_prompt_for_pii_emails( $prompt ): array {
+
+        // Explode incoming prompt into an array.
+        $prompt_array = explode( ' ', $prompt );
+
+        // Identify and return any potential pii emails.
+        return array_filter( $prompt_array, function( $value ) {
+            return !empty( preg_grep( '/^\S+@\S+$/i', [ $value ] ) );
+        } );
+    }
+
+    private static function parse_prompt_for_pii_phone_numbers( $prompt ): array {
 
         /**
-         * Users.
+         * Parse for phone numbers in the following formats:
+         *  (123) 456-7890
+         *  (123) 456-7890
+         *  (123)-456-7890
+         *  123 456 7890
+         *  123-456-7890
          */
 
-        $user_lookup_idx_start = strpos( $prompt, $user_prefix, $offsets['users'] );
-        if ( $user_lookup_idx_start !== false ) {
+        preg_match_all('/\(?\d{3}\)?[\s-]?\d{3}[\s-]\d{4}/', $prompt, $matches, PREG_SET_ORDER, 0);
 
-            // First, extract index and actual lookup value.
-            $length = strpos( $prompt, ' ', $user_lookup_idx_start ) - $user_lookup_idx_start;
-            $user_lookup_query = substr( $prompt, $user_lookup_idx_start, ( $length > strlen( $user_prefix ) ) ? $length : null );
-            $user_lookup_query_value = substr( $user_lookup_query, strlen( $user_prefix ) );
-
-            // Execute locations search.
-            $users = Disciple_Tools_Users::get_assignable_users_compact( $user_lookup_query_value, true, $post_type );
-
-            // If available, source the first hit and update prompt accordingly.
-            $parsed_user_str = '';
-            if ( count( $users ) > 0 ) {
-                $user = $users[0];
-                $parsed_user_str = '@['. $user['name'] .']('. $user['ID'] .')';
-            }
-
-            if ( !empty( $parsed_user_str ) ) {
-                $prompt = str_replace( $user_lookup_query, $parsed_user_str, $prompt );
-            }
-
-            // Update users offset count (to avoid endless recursion) and recursive, in search of other user lookup references.
-            $offsets['users'] = $user_lookup_idx_start + 1;
-
-            // Recurse in search of others.
-            $prompt = self::parse_prompt( $prompt, $post_type, $offsets );
+        // Break if there are no matches.
+        if ( empty( $matches ) ) {
+            return [];
         }
 
-        /**
-         * Locations.
-         */
-
-        $location_lookup_idx_start = strpos( $prompt, $location_prefix, $offsets['users'] );
-        if ( $location_lookup_idx_start !== false ) {
-
-            // First, extract index and actual lookup value.
-            $length = strpos( $prompt, ' ', $location_lookup_idx_start ) - $location_lookup_idx_start;
-            $location_lookup_query = substr( $prompt, $location_lookup_idx_start, ( $length > strlen( $location_prefix ) ) ? $length : null );
-            $location_lookup_query_value = substr( $location_lookup_query, strlen( $location_prefix ) );
-
-            // Execute locations search.
-            $locations = Disciple_Tools_Mapping_Queries::search_location_grid_by_name( [
-                'search_query' => $location_lookup_query_value,
-                'filter' => 'all'
-            ] );
-
-            // If available, source the first hit and update prompt accordingly.
-            $parsed_location_str = '';
-            if ( isset( $locations['location_grid'] ) && count( $locations['location_grid'] ) > 0 ) {
-                $location = $locations['location_grid'][0];
-                $parsed_location_str = '@['. $location['label'] .']('. $location['grid_id'] .')';
+        // Proceed with extracting matched phone numbers.
+        return array_map( function( $match ) {
+            if ( is_array( $match ) && !empty( $match ) ) {
+                return $match[0];
             }
+            return null;
+        }, $matches );
+    }
 
-            if ( !empty( $parsed_location_str ) ) {
-                $prompt = str_replace( $location_lookup_query, $parsed_location_str, $prompt );
+    private static function convert_filter_fields_from_obfuscated_to_plain( $filter_fields, $pii_mappings ): array {
+        $fields = [];
+
+        if ( is_array( $pii_mappings ) && is_array( $filter_fields ) ) {
+            foreach ( $filter_fields as $field ) {
+                if ( is_array( $field ) ) {
+                    foreach ( $field as $key => $value ) {
+                        $fields[ $key ] = [];
+                        if ( is_array( $value ) ) {
+                            foreach ( $value as $obfuscated_value ) {
+                                if ( isset( $pii_mappings[ $obfuscated_value ] ) ) {
+                                    $fields[ $key ][] = $pii_mappings[ $obfuscated_value ];
+                                } else {
+                                    $fields[ $key ][] = $obfuscated_value;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
-            // Update locations offset count (to avoid endless recursion) and recursive, in search of other location lookup references.
-            $offsets['locations'] = $location_lookup_idx_start + 1;
-
-            // Recurse in search of others.
-            $prompt = self::parse_prompt( $prompt, $post_type, $offsets );
+        } else {
+            $fields = $filter_fields;
         }
 
-        return $prompt;
+        return $fields;
     }
 }
