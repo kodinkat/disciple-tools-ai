@@ -99,7 +99,7 @@ class Disciple_Tools_AI_Endpoints
         ];
     }
 
-    public function create_filter( WP_REST_Request $request ): WP_Error|array {
+    public function create_filter( WP_REST_Request $request ) {
         $params = $request->get_params();
         if ( ! isset( $params['prompt'], $params['post_type'] ) ) {
             return new WP_Error( __METHOD__, 'Missing parameters.' );
