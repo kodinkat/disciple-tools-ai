@@ -692,7 +692,7 @@ class Disciple_Tools_AI_API {
         } );
     }
 
-    private static function parse_prompt_for_pii_locations( $prompt,  $params = [] ): array {
+    private static function parse_prompt_for_pii_locations( $prompt, $params = [] ): array {
 
         // Capture required processing parameters.
         $min_chars = $params['min_chars'] ?? 3;
@@ -735,7 +735,7 @@ class Disciple_Tools_AI_API {
          *  123-456-7890
          */
 
-        preg_match_all('/\(?\d{3}\)?[\s-]?\d{3}[\s-]\d{4}/', $prompt, $matches, PREG_SET_ORDER, 0);
+        preg_match_all( '/\(?\d{3}\)?[\s-]?\d{3}[\s-]\d{4}/', $prompt, $matches, PREG_SET_ORDER, 0 );
 
         // Break if there are no matches.
         if ( empty( $matches ) ) {
