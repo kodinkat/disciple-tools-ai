@@ -142,6 +142,10 @@ class Disciple_Tools_AI_Tab_General {
         $llm_endpoint = get_option( 'DT_AI_llm_endpoint' );
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
+
+        $list_filter_enabled = get_option( 'DT_AI_list_filter_enabled', 1 ) == 1;
+        $ml_list_filter_enabled = get_option( 'DT_AI_ml_list_filter_enabled', 1 ) == 1;
+        $metrics_dynamic_maps_enabled = get_option( 'DT_AI_metrics_dynamic_maps_enabled', 1 ) == 1;
         ?>
         <form method="post">
             <?php wp_nonce_field( 'dt_admin_form', 'dt_admin_form_nonce' ) ?>
@@ -185,6 +189,48 @@ class Disciple_Tools_AI_Tab_General {
                 </tr>
                 </tbody>
             </table>
+
+            <br>
+            <table class="widefat striped">
+                <thead>
+                <tr>
+                    <th>Enabled Features</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        List Filter Enabled
+                    </td>
+                    <td>
+                        <input type="checkbox" name="dt_ai_list_filter_enabled" <?php echo ($list_filter_enabled ? 'checked' : '') ?>>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Magic Link List Filter Enabled
+                    </td>
+                    <td>
+                        <input type="checkbox" name="dt_ai_ml_list_filter_enabled" <?php echo ($ml_list_filter_enabled ? 'checked' : '') ?>>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Metrics Dynamic Maps Enabled
+                    </td>
+                    <td>
+                        <input type="checkbox" name="dt_ai_metrics_dynamic_maps_enabled" <?php echo ($metrics_dynamic_maps_enabled ? 'checked' : '') ?>>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button class="button">Save</button>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
         </form>
         <br>
         <?php
@@ -207,6 +253,10 @@ class Disciple_Tools_AI_Tab_General {
             if ( isset( $post_vars['llm-model'] ) ) {
                 update_option( 'DT_AI_llm_model', $post_vars['llm-model'] );
             }
+
+            update_option( 'DT_AI_list_filter_enabled', isset( $post_vars['dt_ai_list_filter_enabled'] ) ? 1 : 0 );
+            update_option( 'DT_AI_ml_list_filter_enabled', isset( $post_vars['dt_ai_ml_list_filter_enabled'] ) ? 1 : 0 );
+            update_option( 'DT_AI_metrics_dynamic_maps_enabled', isset( $post_vars['dt_ai_metrics_dynamic_maps_enabled'] ) ? 1 : 0 );
         }
     }
 
