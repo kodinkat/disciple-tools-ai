@@ -158,9 +158,6 @@ class Disciple_Tools_AI_Tile
     }
 
     public function dt_ai_action_bar_buttons( $post_type ): void {
-        if ( get_option( 'DT_AI_list_filter_enabled', 1 ) == 0 ) {
-            return;
-        }
         ?>
         <style>
             /* ===== Search & Filter ===== */
