@@ -37,9 +37,6 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
     } // End instance()
 
     public function __construct() {
-        if ( get_option( 'DT_AI_ml_list_filter_enabled', 1 ) == 0 ) {
-            return;
-        }
 
         /**
          * Specify metadata structure, specific to the processing of current
