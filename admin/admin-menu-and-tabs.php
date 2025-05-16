@@ -143,6 +143,7 @@ class Disciple_Tools_AI_Tab_General {
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
         ?>
+
         <form method="post">
             <?php wp_nonce_field( 'dt_admin_form', 'dt_admin_form_nonce' ) ?>
             <table class="widefat striped">
