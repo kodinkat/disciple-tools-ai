@@ -33,6 +33,6 @@ archived records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": [
 closed records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
 
 groups ==//== {"fields": [{"assigned_to": ["me"]}]}
-active groups ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["active"]}]}
-groups none set ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["none"]}]}
-inactive groups ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["inactive"]}]}
+active groups ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["active"]}]}
+groups none set ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["none"]}]}
+inactive groups ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["inactive"]}]}
