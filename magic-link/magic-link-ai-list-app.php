@@ -124,8 +124,8 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
             Disciple_Tools_Bulk_Magic_Link_Sender_API::enqueue_magic_link_utilities_script();
         }
 
-        dt_theme_enqueue_script( 'tribute-js', 'dt-core/dependencies/tributejs/dist/tribute.min.js', array(), true );
-        dt_theme_enqueue_style( 'tribute-css', 'dt-core/dependencies/tributejs/dist/tribute.css', array() );
+        wp_enqueue_script( 'tribute-js', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/5.1.3/tribute.min.js', array(), '5.1.3' );
+        wp_enqueue_style( 'tribute-css', 'https://cdnjs.cloudflare.com/ajax/libs/tributejs/5.1.3/tribute.min.css', array(), '5.1.3' );
     }
 
     public function dt_magic_url_base_allowed_js( $allowed_js ) {
