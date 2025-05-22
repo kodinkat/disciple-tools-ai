@@ -13,8 +13,8 @@ class Disciple_Tools_AI_Charts
 
     public function __construct(){
 
-        require_once( 'one-page-chart-template.php' );
-        new Disciple_Tools_AI_Chart_Template();
+        require_once( 'dynamic-ai-maps.php' );
+        new Disciple_Tools_AI_Dynamic_Maps();
 
         /**
          * @todo add other charts like the pattern above here

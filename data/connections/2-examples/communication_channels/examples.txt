@@ -1,0 +1,5 @@
+Show all records with 1234 in their phone number. ==//== {"channels": ["1234"]}
+Show all contacts which do not contain 2ofm09ds8404e6.tcc7t1 in their email. ==//== {"channels": ["2ofm09ds8404e6.tcc7t1"]}
+Show any records with a facebook entry. ==//== {"channels": []}
+Show records which have the phone numbers 320f05718045060165b50f--8 or ff67215242508 0690814 526. ==//== {"channels": ["320f05718045060165b50f--8", "ff67215242508 0690814 526"]}
+Show all contacts with the following emails: ng1ob89cfei.080ob19fg76@ooml, l1g@gch.0broo187e8frog9604 or co8m.ob@06jc17gfb6s10lge8o9o ==//== {"channels": ["ng1ob89cfei.080ob19fg76@ooml", "l1g@gch.0broo187e8frog9604", "co8m.ob@06jc17gfb6s10lge8o9o"]}

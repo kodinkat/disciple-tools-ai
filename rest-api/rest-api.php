@@ -99,13 +99,20 @@ class Disciple_Tools_AI_Endpoints
         ];
     }
 
-    public function create_filter( WP_REST_Request $request ): array {
+    public function create_filter( WP_REST_Request $request ) {
         $params = $request->get_params();
+        if ( ! isset( $params['prompt'], $params['post_type'] ) ) {
+            return new WP_Error( __METHOD__, 'Missing parameters.' );
+        }
 
         $prompt = $params['prompt'];
         $post_type = $params['post_type'];
 
-        return Disciple_Tools_AI_API::handle_create_filter_request( $prompt, $post_type );
+        if ( isset( $params['selections'] ) ) {
+            return $this->handle_create_filter_with_selections_request( $post_type, $prompt, $params['selections'] );
+        } else {
+            return $this->handle_create_filter_request( $post_type, $prompt );
+        }
     }
 
     private static $_instance = null;
@@ -126,6 +133,48 @@ class Disciple_Tools_AI_Endpoints
             }
         }
         return $pass;
+    }
+
+    private function handle_create_filter_request( $post_type, $prompt ): array {
+
+        /**
+         * If the initial response is multiple_options_detected, then return; otherwise,
+         * filter locations and then return.
+         */
+
+        $response = Disciple_Tools_AI_API::list_posts( $post_type, $prompt );
+        if ( isset( $response['status'] ) && $response['status'] === 'multiple_options_detected' ) {
+            return $response;
+        }
+
+        /**
+         * Finally, the finish line - return the response.
+         */
+
+        return [
+            'status' => 'success',
+            'prompt' => $response['prompt'] ?? [],
+            'pii' => $response['pii'] ?? [],
+            'connections' => $response['connections'] ?? [],
+            'filter' => $response['filter'] ?? [],
+            'posts' => $response['posts'] ?? []
+        ];
+    }
+
+    private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections ): array {
+
+        $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections );
+
+        /**
+         * Finally, the finish line - return the response.
+         */
+
+        return [
+            'status' => 'success',
+            'prompt' => $response['prompt'] ?? [],
+            'filter' => $response['filter'] ?? [],
+            'posts' => $response['posts'] ?? []
+        ];
     }
 }
 Disciple_Tools_AI_Endpoints::instance();

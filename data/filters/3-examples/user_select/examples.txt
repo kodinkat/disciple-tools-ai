@@ -1,12 +1,38 @@
-Show me all contacts assigned to @[Anthony Palacio (multiplier)](8) with no status set. ==//== {"fields": [{"assigned_to": ["8"]}]}
-List all contacts assigned to @[Damián Abellán (Dispatcher)](4) with no status set. ==//== {"fields": [{"assigned_to": ["4"]}]}
-Create a filter for @[cypress_test_user_12](20) showing active contacts. ==//== {"fields": [{"assigned_to": ["20"]}]}
-Create a filter showing all active contacts for @[Christopher Berganza (multiplier)](9) and @[Damián Abellán (Dispatcher)](4) ==//== {"fields": [{"assigned_to": ["9", "4"]}]}
+Show me all contacts assigned to @[####](8) with no status set. ==//== {"fields": [{"assigned_to": ["8"]}]}
+List all contacts assigned to @[####](4) with no status set. ==//== {"fields": [{"assigned_to": ["4"]}]}
+Create a filter for @[####](20) showing active contacts. ==//== {"fields": [{"assigned_to": ["20"]}]}
+Create a filter showing all active contacts for @[####](9) and @[####](4) ==//== {"fields": [{"assigned_to": ["9", "4"]}]}
 Show all new contacts assigned to me ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["new"]}]}
-Show all contacts assigned to @[Mary Smith (marketer)](3); which are not yet ready for processing ==//== {"fields": [{"assigned_to": ["3"]},{"overall_status": ["unassignable"]}]}
-Show contacts which are not ready and dispatch needed and assigned to both @[Mary Smith (marketer)](3) and @[Rachel Black (dispatcher)](5) ==//== {"fields": [{"assigned_to": ["3","5"]},{"overall_status": ["unassignable","unassigned"]}]}
-Create a filter of contacts waiting to be accepted for @[Jon](21) ==//== {"fields": [{"assigned_to": ["21"]},{"overall_status": ["assigned"]}]}
-Show all paused contacts for @[Jane Doe (multiplier)](2) ==//== {"fields": [{"assigned_to": ["2"]},{"overall_status": ["paused"]}]}
-Show me all archived contacts ==//== {"fields": [{"assigned_to": ["me"]}]}
+Show all contacts assigned to @[####](3); which are not yet ready for processing ==//== {"fields": [{"assigned_to": ["3"]},{"overall_status": ["unassignable"]}]}
+Show contacts which are not ready and dispatch needed and assigned to both @[####](3) and @[####](5) ==//== {"fields": [{"assigned_to": ["3","5"]},{"overall_status": ["unassignable","unassigned"]}]}
+Create a filter of contacts waiting to be accepted for @[####](21) ==//== {"fields": [{"assigned_to": ["21"]},{"overall_status": ["assigned"]}]}
+Show all paused contacts for @[####](2) ==//== {"fields": [{"assigned_to": ["2"]},{"overall_status": ["paused"]}]}
+Show me all archived contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
 Show all active contacts not assigned to me ==//== {"fields": [{"assigned_to": ["-me"]}]}
 
+contacts ==//== {"fields": [{"assigned_to": ["me"]}]}
+active contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["active"]}]}
+contacts not set ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["none"]}]}
+new contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["new"]}]}
+contacts not ready ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["unassignable"]}]}
+contacts with dispatch needed ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["unassigned"]}]}
+contacts waiting to be accepted ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["assigned"]}]}
+paused contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["paused"]}]}
+archived contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
+closed contacts ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
+
+records ==//== {"fields": [{"assigned_to": ["me"]}]}
+active records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["active"]}]}
+records not set ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["none"]}]}
+new records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["new"]}]}
+records not ready ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["unassignable"]}]}
+records with dispatch needed ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["unassigned"]}]}
+records waiting to be accepted ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["assigned"]}]}
+paused records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["paused"]}]}
+archived records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
+closed records ==//== {"fields": [{"assigned_to": ["me"]},{"overall_status": ["closed"]}]}
+
+groups ==//== {"fields": [{"assigned_to": ["me"]}]}
+active groups ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["active"]}]}
+groups none set ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["none"]}]}
+inactive groups ==//== {"fields": [{"assigned_to": ["me"]},{"group_status": ["inactive"]}]}

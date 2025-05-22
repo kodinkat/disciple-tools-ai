@@ -1,0 +1,7 @@
+Show records for baptised users a8567D7a2Je81f 9n0oe6 and  708oS6nm1825f9bah70J. ==//== {"connections": ["a8567D7a2Je81f 9n0oe6", " 708oS6nm1825f9bah70J"]}
+Show records baptized by 565mfSo27b07nf h9a48J and neJf4976D50eo7ba58fc . ==//== {"connections": ["565mfSo27b07nf h9a48J", "neJf4976D50eo7ba58fc "]}
+Show records coached by f Jeah6Sa01aa778er13e4n and 7k8Ff3n71Fk4n8 aaf1rr60a. ==//== {"connections": ["f Jeah6Sa01aa778er13e4n", "7k8Ff3n71Fk4n8 aaf1rr60a"]}
+Show records which connect to 7 i40jac7lr218fa6aAHj3d. ==//== {"connections": ["7 i40jac7lr218fa6aAHj3d"]}
+
+Show all contacts who have been baptized by somebody. ==//== {"connections": []}
+Show contacts not yet coached by anybody. ==//== {"connections": []}
