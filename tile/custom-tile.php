@@ -252,6 +252,13 @@ class Disciple_Tools_AI_Tile
                 ]) ?>][0]
 
                 /**
+                * Hide default advanced search wrapper options.
+                */
+
+                $('#search').hide();
+                $('.search-wrapper').hide();
+
+                /**
                  * Proceed with AI filter prompt setup.
                  */
 
