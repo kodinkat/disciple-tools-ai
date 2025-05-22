@@ -15,7 +15,7 @@ class Disciple_Tools_AI_Tile
         add_filter( 'dt_details_additional_tiles', [ $this, 'dt_details_additional_tiles' ], 10, 2 );
         add_filter( 'dt_custom_fields_settings', [ $this, 'dt_custom_fields' ], 1, 2 );
         add_action( 'dt_details_additional_section', [ $this, 'dt_add_section' ], 30, 2 );
-        add_action( 'dt_ai_action_bar_buttons', [ $this, 'dt_ai_action_bar_buttons' ], 10, 1 );
+        add_action( 'archive_template_action_bar_buttons', [ $this, 'archive_template_action_bar_buttons' ], 5, 1 );
     }
 
     public function dt_site_scripts(): void {
@@ -157,7 +157,7 @@ class Disciple_Tools_AI_Tile
         <?php }
     }
 
-    public function dt_ai_action_bar_buttons( $post_type ): void {
+    public function archive_template_action_bar_buttons( $post_type ): void {
         ?>
         <style>
             /* ===== Search & Filter ===== */
