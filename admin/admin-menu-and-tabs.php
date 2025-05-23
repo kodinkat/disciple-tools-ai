@@ -142,9 +142,27 @@ class Disciple_Tools_AI_Tab_General {
         $llm_endpoint = get_option( 'DT_AI_llm_endpoint' );
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
-        $list_filter_enabled = get_option( 'DT_AI_list_filter_enabled', 1 ) == 1;
-        $ml_list_filter_enabled = get_option( 'DT_AI_ml_list_filter_enabled', 1 ) == 1;
-        $metrics_dynamic_maps_enabled = get_option( 'DT_AI_metrics_dynamic_maps_enabled', 1 ) == 1;
+
+        $enabled_features = apply_filters( 'dt_ai_list_features', [
+            'dt_ai_list_filter_enabled' => [
+                'id' => 'dt_ai_list_filter_enabled',
+                'name' => 'List Filter Enabled',
+                'visible' => true,
+                'enabled' => get_option( 'DT_AI_list_filter_enabled', 1 ) == 1
+            ],
+            'dt_ai_ml_list_filter_enabled' => [
+                'id' => 'dt_ai_ml_list_filter_enabled',
+                'name' => 'Magic Link List Filter Enabled',
+                'visible' => true,
+                'enabled' => get_option( 'DT_AI_ml_list_filter_enabled', 1 ) == 1
+            ],
+            'dt_ai_metrics_dynamic_maps_enabled' => [
+                'id' => 'dt_ai_metrics_dynamic_maps_enabled',
+                'name' => 'Metrics Dynamic Maps Enabled',
+                'visible' => true,
+                'enabled' => get_option( 'DT_AI_metrics_dynamic_maps_enabled', 1 ) == 1
+            ]
+        ] );
         ?>
 
         <form method="post">
@@ -199,30 +217,22 @@ class Disciple_Tools_AI_Tab_General {
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>
-                        List Filter Enabled
-                    </td>
-                    <td>
-                        <input type="checkbox" name="dt_ai_list_filter_enabled" <?php echo ($list_filter_enabled ? 'checked' : '') ?>>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Magic Link List Filter Enabled
-                    </td>
-                    <td>
-                        <input type="checkbox" name="dt_ai_ml_list_filter_enabled" <?php echo ($ml_list_filter_enabled ? 'checked' : '') ?>>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Metrics Dynamic Maps Enabled
-                    </td>
-                    <td>
-                        <input type="checkbox" name="dt_ai_metrics_dynamic_maps_enabled" <?php echo ($metrics_dynamic_maps_enabled ? 'checked' : '') ?>>
-                    </td>
-                </tr>
+                <?php
+                foreach ( $enabled_features as $feature ) {
+                    if ( isset( $feature['visible'] ) && $feature['visible'] ) {
+                        ?>
+                        <tr>
+                            <td>
+                                <?php echo esc_attr( $feature['name'] ) ?>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="<?php echo esc_attr( $feature['id'] ) ?>" <?php echo ( ( isset( $feature['enabled'] ) && $feature['enabled'] ) ? 'checked' : '' ) ?>>
+                            </td>
+                        </tr>
+                        <?php
+                    }
+                }
+                ?>
                 <tr>
                     <td>
                         <button class="button">Save</button>
@@ -257,6 +267,24 @@ class Disciple_Tools_AI_Tab_General {
             update_option( 'DT_AI_list_filter_enabled', isset( $post_vars['dt_ai_list_filter_enabled'] ) ? 1 : 0 );
             update_option( 'DT_AI_ml_list_filter_enabled', isset( $post_vars['dt_ai_ml_list_filter_enabled'] ) ? 1 : 0 );
             update_option( 'DT_AI_metrics_dynamic_maps_enabled', isset( $post_vars['dt_ai_metrics_dynamic_maps_enabled'] ) ? 1 : 0 );
+
+            // Broadcast enabled feature state changes.
+            $ignored_params = [
+                '_wp_http_referer',
+                'dt_admin_form_nonce',
+                'llm-api-key',
+                'llm-endpoint',
+                'llm-model',
+                'dt_ai_list_filter_enabled',
+                'dt_ai_ml_list_filter_enabled',
+                'dt_ai_metrics_dynamic_maps_enabled'
+            ];
+
+            $enabled_features = array_values( array_filter( array_keys( $post_vars ), function ( $feature ) use ( $ignored_params ) {
+                return !in_array( $feature, $ignored_params );
+            } ) );
+
+            do_action( 'dt_ai_enabled_features', $enabled_features );
         }
     }
 
