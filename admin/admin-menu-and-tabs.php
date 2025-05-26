@@ -143,26 +143,8 @@ class Disciple_Tools_AI_Tab_General {
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
 
-        $enabled_features = apply_filters( 'dt_ai_list_features', [
-            'dt_ai_list_filter_enabled' => [
-                'id' => 'dt_ai_list_filter_enabled',
-                'name' => 'List Filter Enabled',
-                'visible' => true,
-                'enabled' => get_option( 'DT_AI_list_filter_enabled', 1 ) == 1
-            ],
-            'dt_ai_ml_list_filter_enabled' => [
-                'id' => 'dt_ai_ml_list_filter_enabled',
-                'name' => 'Magic Link List Filter Enabled',
-                'visible' => true,
-                'enabled' => get_option( 'DT_AI_ml_list_filter_enabled', 1 ) == 1
-            ],
-            'dt_ai_metrics_dynamic_maps_enabled' => [
-                'id' => 'dt_ai_metrics_dynamic_maps_enabled',
-                'name' => 'Metrics Dynamic Maps Enabled',
-                'visible' => true,
-                'enabled' => get_option( 'DT_AI_metrics_dynamic_maps_enabled', 1 ) == 1
-            ]
-        ] );
+        // Fetch default and 3rd-Party AI modules.
+        $modules = Disciple_Tools_AI_API::list_modules();
         ?>
 
         <form method="post">
@@ -218,15 +200,15 @@ class Disciple_Tools_AI_Tab_General {
                 </thead>
                 <tbody>
                 <?php
-                foreach ( $enabled_features as $feature ) {
-                    if ( isset( $feature['visible'] ) && $feature['visible'] ) {
+                foreach ( $modules as $module ) {
+                    if ( isset( $module['visible'] ) && $module['visible'] ) {
                         ?>
                         <tr>
                             <td>
-                                <?php echo esc_attr( $feature['name'] ) ?>
+                                <?php echo esc_attr( $module['name'] ) ?>
                             </td>
                             <td>
-                                <input type="checkbox" name="<?php echo esc_attr( $feature['id'] ) ?>" <?php echo ( ( isset( $feature['enabled'] ) && $feature['enabled'] ) ? 'checked' : '' ) ?>>
+                                <input type="checkbox" name="<?php echo esc_attr( $module['id'] ) ?>" <?php echo ( ( isset( $module['enabled'] ) && $module['enabled'] ) ? 'checked' : '' ) ?>>
                             </td>
                         </tr>
                         <?php
@@ -264,27 +246,19 @@ class Disciple_Tools_AI_Tab_General {
                 update_option( 'DT_AI_llm_model', $post_vars['llm-model'] );
             }
 
-            update_option( 'DT_AI_list_filter_enabled', isset( $post_vars['dt_ai_list_filter_enabled'] ) ? 1 : 0 );
-            update_option( 'DT_AI_ml_list_filter_enabled', isset( $post_vars['dt_ai_ml_list_filter_enabled'] ) ? 1 : 0 );
-            update_option( 'DT_AI_metrics_dynamic_maps_enabled', isset( $post_vars['dt_ai_metrics_dynamic_maps_enabled'] ) ? 1 : 0 );
+            /**
+             * Process incoming module state changes.
+             */
 
-            // Broadcast enabled feature state changes.
-            $ignored_params = [
-                '_wp_http_referer',
-                'dt_admin_form_nonce',
-                'llm-api-key',
-                'llm-endpoint',
-                'llm-model',
-                'dt_ai_list_filter_enabled',
-                'dt_ai_ml_list_filter_enabled',
-                'dt_ai_metrics_dynamic_maps_enabled'
-            ];
+            $updated_modules = [];
+            foreach ( Disciple_Tools_AI_API::list_modules() as $module ) {
+                $module['enabled'] = isset( $post_vars[ $module['id'] ] ) ? 1 : 0;
+                $updated_modules[ $module['id'] ] = $module;
+            }
 
-            $enabled_features = array_values( array_filter( array_keys( $post_vars ), function ( $feature ) use ( $ignored_params ) {
-                return !in_array( $feature, $ignored_params );
-            } ) );
+            Disciple_Tools_AI_API::update_modules( $updated_modules );
 
-            do_action( 'dt_ai_enabled_features', $enabled_features );
+            do_action( 'dt_ai_modules_updated', $updated_modules );
         }
     }
 

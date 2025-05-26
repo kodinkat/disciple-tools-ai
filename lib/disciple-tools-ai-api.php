@@ -5,6 +5,10 @@ if ( !defined( 'ABSPATH' ) ){
 
 class Disciple_Tools_AI_API {
 
+    public static $module_default_id_dt_ai_list_filter = 'dt_ai_list_filter';
+    public static $module_default_id_dt_ai_ml_list_filter = 'dt_ai_ml_list_filter';
+    public static $module_default_id_dt_ai_metrics_dynamic_maps = 'dt_ai_metrics_dynamic_maps';
+
     public static function list_posts( string $post_type, string $prompt ): array {
 
         /**
@@ -776,5 +780,57 @@ class Disciple_Tools_AI_API {
         }
 
         return $fields;
+    }
+
+    public static function list_modules( $defaults = [
+        'dt_ai_list_filter' => [
+            'id' => 'dt_ai_list_filter',
+            'name' => 'List Filter Enabled',
+            'visible' => true,
+            'enabled' => 1
+        ],
+        'dt_ai_ml_list_filter' => [
+            'id' => 'dt_ai_ml_list_filter',
+            'name' => 'Magic Link List Filter Enabled',
+            'visible' => true,
+            'enabled' => 1
+        ],
+        'dt_ai_metrics_dynamic_maps' => [
+            'id' => 'dt_ai_metrics_dynamic_maps',
+            'name' => 'Metrics Dynamic Maps Enabled',
+            'visible' => true,
+            'enabled' => 1
+        ]
+    ] ): array {
+        $ai_modules = apply_filters( 'dt_ai_modules', $defaults );
+        $module_options = get_option( 'dt_ai_modules', [] );
+
+        // Remove modules not present.
+        foreach ( $module_options as $key => $module ) {
+            if ( !isset( $ai_modules[$key] ) ) {
+                unset( $module_options[$key] );
+            }
+        }
+
+        // Merge distinct.
+        return dt_array_merge_recursive_distinct( $ai_modules, $module_options );
+    }
+
+    public static function update_modules( $updated_modules ): bool {
+        return update_option( 'dt_ai_modules', $updated_modules );
+    }
+
+    public static function has_module_value( $module_id, $module_property, $module_value ): bool {
+        $modules = self::list_modules();
+
+        if ( !isset( $modules[ $module_id ] ) ) {
+            return false;
+        }
+
+        if ( !isset( $modules[ $module_id ][ $module_property ] ) ) {
+            return false;
+        }
+
+        return $modules[ $module_id ][ $module_property ] === $module_value;
     }
 }

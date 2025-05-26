@@ -18,7 +18,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
     public $permissions = [ 'dt_all_access_contacts', 'view_project_metrics' ];
 
     public function __construct() {
-        if ( get_option( 'DT_AI_metrics_dynamic_maps_enabled', 1 ) == 0 ) {
+        if ( Disciple_Tools_AI_API::has_module_value( Disciple_Tools_AI_API::$module_default_id_dt_ai_metrics_dynamic_maps, 'enabled', 0 ) ) {
             return;
         }
 
