@@ -142,6 +142,9 @@ class Disciple_Tools_AI_Tab_General {
         $llm_endpoint = get_option( 'DT_AI_llm_endpoint' );
         $llm_api_key = get_option( 'DT_AI_llm_api_key' );
         $llm_model = get_option( 'DT_AI_llm_model' );
+
+        // Fetch default and 3rd-Party AI modules.
+        $modules = Disciple_Tools_AI_API::list_modules();
         ?>
         <form method="post">
             <?php wp_nonce_field( 'dt_admin_form', 'dt_admin_form_nonce' ) ?>
@@ -185,6 +188,40 @@ class Disciple_Tools_AI_Tab_General {
                 </tr>
                 </tbody>
             </table>
+
+            <br>
+            <table class="widefat striped">
+                <thead>
+                <tr>
+                    <th>Enabled Features</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php
+                foreach ( $modules as $module ) {
+                    if ( isset( $module['visible'] ) && $module['visible'] ) {
+                        ?>
+                        <tr>
+                            <td>
+                                <?php echo esc_attr( $module['name'] ) ?>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="<?php echo esc_attr( $module['id'] ) ?>" <?php echo ( ( isset( $module['enabled'] ) && $module['enabled'] ) ? 'checked' : '' ) ?>>
+                            </td>
+                        </tr>
+                        <?php
+                    }
+                }
+                ?>
+                <tr>
+                    <td>
+                        <button class="button">Save</button>
+                    </td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
         </form>
         <br>
         <?php
@@ -207,6 +244,20 @@ class Disciple_Tools_AI_Tab_General {
             if ( isset( $post_vars['llm-model'] ) ) {
                 update_option( 'DT_AI_llm_model', $post_vars['llm-model'] );
             }
+
+            /**
+             * Process incoming module state changes.
+             */
+
+            $updated_modules = [];
+            foreach ( Disciple_Tools_AI_API::list_modules() as $module ) {
+                $module['enabled'] = isset( $post_vars[ $module['id'] ] ) ? 1 : 0;
+                $updated_modules[ $module['id'] ] = $module;
+            }
+
+            Disciple_Tools_AI_API::update_modules( $updated_modules );
+
+            do_action( 'dt_ai_modules_updated', $updated_modules );
         }
     }
 
