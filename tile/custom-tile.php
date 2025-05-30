@@ -158,6 +158,9 @@ class Disciple_Tools_AI_Tile
     }
 
     public function archive_template_action_bar_buttons( $post_type ): void {
+        if ( Disciple_Tools_AI_API::has_module_value( Disciple_Tools_AI_API::$module_default_id_dt_ai_list_filter, 'enabled', 0 ) ) {
+            return;
+        }
         ?>
         <style>
             /* ===== Search & Filter ===== */
