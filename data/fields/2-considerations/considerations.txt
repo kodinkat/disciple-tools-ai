@@ -1,0 +1,8 @@
+Additional Considerations:
+
+- Date Formatting: Ensure dates are in YYYY-MM-DD format.
+- Operators: Use appropriate comparison operators for date and number filters.
+- Combining Criteria: When multiple criteria are specified, include all relevant filters in the JSON object.
+- API Structure Compliance: Ensure the output matches the expected API structure exactly.
+- Only return a valid json string. Do not return any other text or newline characters such as \\n
+- You should return an object with the key `fields` and the value as the filter object; as well as the keys `channels`, `locations`, `connections` and arrays containing extracted values.

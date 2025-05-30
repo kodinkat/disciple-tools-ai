@@ -5,7 +5,365 @@ if ( !defined( 'ABSPATH' ) ){
 
 class Disciple_Tools_AI_API {
 
+    public static function simplified_list_posts( string $post_type, string $prompt ): array {
+
+        /**
+         * Before submitting to LLM for analysis, ensure to obfuscate any PII.
+         */
+
+        $original_prompt = $prompt;
+        $pii = self::parse_prompt_for_pii( $post_type, $prompt );
+        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
+        if ( $has_pii ) {
+            $prompt = $pii['prompt']['obfuscated'];
+        }
+
+        /**
+         * Following obfuscation, proceed with LLM call to parse prompt for relevant fields.
+         */
+
+        $fields = self::parse_prompt_for_fields( $post_type, $original_prompt, $prompt );
+
+        /**
+         * Ensure any encountered errors are echoed back to calling client.
+         */
+
+        if ( isset( $fields['status'] ) && $fields['status'] == 'error' ) {
+            return $fields;
+        }
+
+        /**
+         * Next, identify any connections within incoming prompt; especially
+         * the ones with multiple options; as these will need to be handled
+         * separately, in a different flow, causing the client to select which
+         * option to use.
+         */
+
+        $locations = [];
+        $multiple_locations = [];
+
+        $users = [];
+        $multiple_users = [];
+
+        $posts = [];
+        $multiple_posts = [];
+
+        // Extract any locations from identified connections.
+        if ( !empty( $fields['locations'] ) ) {
+            $locations = self::parse_locations_for_ids( $fields['locations'], $pii['mappings'] ?? [] );
+
+            // Identify locations with multiple options.
+            $multiple_locations = array_filter( $locations, function( $location ) {
+                return count( $location['options'] ) > 0;
+            } );
+        }
+
+        // Extract any users (takes priority over posts) or posts from identified connections.
+        if ( !empty( $fields['connections'] ) ) {
+
+            /**
+             * Users.
+             */
+
+            // Extract any users from identified connections.
+            $users = self::parse_connections_for_users( $fields['connections'], $post_type, $pii['mappings'] ?? [] );
+
+            // Identify users with multiple options.
+            $multiple_users = array_filter( $users, function( $user ) {
+                return count( $user['options'] ) > 0;
+            } );
+
+            /**
+             * Posts.
+             */
+
+            // Extract any post-names from identified connections.
+            $posts = self::parse_connections_for_post_names( $fields['connections'], $post_type, $pii['mappings'] ?? [] );
+
+            // Identify posts with multiple options.
+            $multiple_posts = array_filter( $posts, function( $post ) {
+                return count( $post['options'] ) > 0;
+            } );
+        }
+
+        /**
+         * Determine if flow is to be paused, due to multiple options.
+         */
+
+        if ( count( array_merge( $multiple_locations, $multiple_users, $multiple_posts ) ) > 0 ) {
+            return [
+                'status' => 'multiple_options_detected',
+                'multiple_options' => [
+                    'locations' => $multiple_locations,
+                    'users' => $multiple_users,
+                    'posts' => $multiple_posts
+                ]
+            ];
+        }
+
+        /**
+         * If no multiple options are detected, proceed with system query.
+         * But first, ensure any remaining obfuscated entries are mapped back
+         * into plain prompt values, or corresponding multiple option ids.
+         */
+
+        if ( $has_pii ) {
+            $fields['fields'] = self::simplified_convert_filter_fields_from_obfuscated_to_plain( $fields['fields'] ?? [], $pii['mappings'], [
+                'locations' => $multiple_locations,
+                'users' => $multiple_users,
+                'posts' => $multiple_posts
+            ] );
+        }
+
+        /**
+         * Finally, query system for posts, using inferred filters.
+         */
+
+        $list_posts = [];
+        if ( !is_wp_error( $fields ) && isset( $fields['fields'] ) ) {
+            $list = DT_Posts::list_posts( $post_type, [
+                'fields' => $fields['fields']
+            ]);
+
+            $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
+        }
+
+        return [
+            'status' => 'success',
+            'prompt' => [
+                'original' => $has_pii ? $pii['prompt']['original'] : $prompt,
+                'parsed' => $has_pii ? $pii['prompt']['obfuscated'] : $prompt
+            ],
+            'pii' => $pii,
+            'connections' => [
+                //'parsed' => $connections,
+                'extracted' => [
+                    'locations' => $locations,
+                    'users' => $users,
+                    'posts' => $posts
+                ]
+            ],
+            'filter' => $fields,
+            'posts' => $list_posts
+        ];
+    }
+
+    public static function simplified_list_posts_with_selections( string $post_type, string $prompt, array $selections ): array {
+        $processed_prompts = [];
+        $parsed_prompt = $prompt;
+
+        /**
+         * First, update prompt with selected replacements.
+         */
+
+        // Process location selections.
+        foreach ( $selections['locations'] ?? [] as $location ) {
+            if ( !in_array( $location['prompt'], $processed_prompts ) && $location['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $location['id'] .')';
+                $parsed_prompt = str_replace( $location['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $location['prompt'];
+            }
+        }
+
+        // Process user selections.
+        foreach ( $selections['users'] ?? [] as $user ) {
+            if ( !in_array( $user['prompt'], $processed_prompts ) && $user['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $user['id'] .')';
+                $parsed_prompt = str_replace( $user['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $user['prompt'];
+            }
+        }
+
+        // Process post selections.
+        foreach ( $selections['posts'] ?? [] as $post ) {
+            if ( !in_array( $post['prompt'], $processed_prompts ) && $post['id'] !== 'ignore' ) {
+                $replacement = '@[####]('. $post['id'] .')';
+                $parsed_prompt = str_replace( $post['prompt'], $replacement, $parsed_prompt );
+
+                $processed_prompts[] = $post['prompt'];
+            }
+        }
+
+        /**
+         * Before submitting to LLM for analysis, ensure to obfuscate any remaining PII.
+         */
+
+        $pii = self::parse_prompt_for_pii( $post_type, $parsed_prompt );
+
+        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
+
+        $parsed_prompt = $has_pii ? $pii['prompt']['obfuscated'] : $parsed_prompt;
+
+        /**
+         * Almost home! Now we need to create the final query filter, based on parsed prompt.
+         */
+
+        $fields = self::parse_prompt_for_fields( $post_type, $prompt, $parsed_prompt );
+
+        /**
+         * Ensure any encountered errors are echoed back to calling client.
+         */
+
+        if ( isset( $fields['status'] ) && $fields['status'] == 'error' ) {
+            return $fields;
+        }
+
+        /**
+         * Ensure any remaining obfuscated entries are mapped back into plain prompt values, before executing returned filter fields.
+         */
+
+        if ( $has_pii ) {
+            $fields['fields'] = self::simplified_convert_filter_fields_from_obfuscated_to_plain( $fields['fields'], $pii['mappings'] );
+        }
+
+        /**
+         * Next, using the inferred filter, query the posts.
+         */
+
+        $list_posts = [];
+        if ( !is_wp_error( $fields ) && isset( $fields['fields'] ) ) {
+            $list = DT_Posts::list_posts( $post_type, [
+                'fields' => $fields['fields']
+            ]);
+
+            $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
+        }
+
+        return [
+            'status' => 'success',
+            'prompt' => [
+                'original' => $prompt,
+                'parsed' => $parsed_prompt
+            ],
+            'pii' => $pii,
+            'filter' => $fields,
+            'posts' => $list_posts
+        ];
+    }
+
+    public static function parse_prompt_for_fields( string $post_type, string $original_prompt, string $parsed_prompt ): array {
+        if ( !isset( $post_type, $parsed_prompt ) ) {
+            return [];
+        }
+
+        $llm_endpoint_root = get_option( 'DT_AI_llm_endpoint' );
+        $llm_api_key = get_option( 'DT_AI_llm_api_key' );
+        $llm_model = get_option( 'DT_AI_llm_model' );
+        $dt_ai_field_specs = apply_filters( 'dt_ai_field_specs', [], $post_type );
+        $llm_endpoint = $llm_endpoint_root . '/chat/completions';
+
+        /**
+         * Convert filtered specifications into the desired content shape.
+         */
+
+        $llm_model_specs_content = '';
+        if ( !empty( $dt_ai_field_specs ) && isset( $dt_ai_field_specs['fields'] ) ) {
+            $fields = $dt_ai_field_specs['fields'];
+
+            if ( !empty( $fields['brief'] ) ) {
+                $llm_model_specs_content .= implode( '\n', $fields['brief'] ) .'\n';
+            }
+
+            if ( !empty( $fields['post_type_specs'] ) ) {
+                // Reshape associated array into escaped json string.
+                $llm_model_specs_content .= addslashes( json_encode( $fields['post_type_specs'] ) ) . '\n';
+            }
+
+            if ( !empty( $fields['instructions'] ) ) {
+                $llm_model_specs_content .= implode( '\n', $fields['instructions'] ) .'\n';
+            }
+
+            if ( !empty( $fields['considerations'] ) ) {
+                $llm_model_specs_content .= implode( '\n', $fields['considerations'] ) .'\n';
+            }
+
+            if ( !empty( $fields['examples'] ) ) {
+                $llm_model_specs_content .= implode( '\n', $fields['examples'] );
+            }
+        }
+
+        /**
+         * Support retries; in the event of initial faulty JSON shaped responses.
+         */
+
+        $attempts = 0;
+        $response = [];
+
+        while ( $attempts++ < 2 ) {
+            try {
+
+                // Dispatch to prediction guard for prompted inference.
+                $inferred = wp_remote_post( $llm_endpoint, [
+                    'method' => 'POST',
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $llm_api_key,
+                        'Content-Type' => 'application/json',
+                    ],
+                    'body' => json_encode( [
+                        'model' => $llm_model,
+                        'messages' => [
+                            [
+                                'role' => 'system',
+                                'content' => $llm_model_specs_content
+                            ],
+                            [
+                                'role' => 'user',
+                                'content' => $parsed_prompt
+                            ],
+                        ],
+                        'max_completion_tokens' => 1000,
+                        'temperature' => 0.1,
+                        'top_p' => 1,
+                    ] ),
+                    'timeout' => 30,
+                ] );
+
+                // Retry, in the event of an error.
+                if ( !is_wp_error( $inferred ) ) {
+
+                    // Ensure a valid JSON structure has been inferred; otherwise, retry!
+                    $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
+                    if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
+
+                        // Extract inferred filter into final response and stop retry attempts.
+                        $response = json_decode( str_replace( [ '\n', '\r' ], '', trim( $inferred_response['choices'][0]['message']['content'] ) ), true );
+                        if ( !empty( $response ) ) {
+                            $attempts = 2;
+                        }
+                    } elseif ( isset( $inferred_response['error'] ) ) {
+                        $attempts = 2;
+                        $response = [
+                            'status' => 'error',
+                            'message' => sprintf( _x( 'Unable to process prompt: %s', 'Unable to process prompt', 'disciple-tools-ai' ), $inferred_response['error'] )
+                        ];
+                    }
+                } else {
+                    $attempts = 2;
+                    $response = [
+                        'status' => 'error',
+                        'message' => sprintf( _x( 'Unable to process prompt: %s', 'Unable to process prompt', 'disciple-tools-ai' ), $inferred->get_error_message() )
+                    ];
+                }
+            } catch ( Exception $e ) {
+                $attempts = 2;
+                $response = [
+                    'status' => 'error',
+                    'message' => sprintf( _x( 'Unable to process prompt: %s', 'Unable to process prompt', 'disciple-tools-ai' ), $e->getMessage() )
+                ];
+            }
+        }
+
+        return !empty( $response ) ? $response : [
+            'status' => 'error',
+            'message' => sprintf( _x( 'Unable to process prompt: %s', 'Unable to process prompt', 'disciple-tools-ai' ), $original_prompt )
+        ];
+    }
+
     public static function list_posts( string $post_type, string $prompt ): array {
+
+        return self::simplified_list_posts( $post_type, $prompt );
 
         /**
          * First, identify any connections within incoming prompt; especially
@@ -187,6 +545,9 @@ class Disciple_Tools_AI_API {
     }
 
     public static function list_posts_with_selections( string $post_type, string $prompt, array $selections ): array {
+
+        return self::simplified_list_posts_with_selections( $post_type, $prompt, $selections );
+
         $processed_prompts = [];
         $parsed_prompt = $prompt;
 
@@ -614,23 +975,25 @@ class Disciple_Tools_AI_API {
         foreach ( $posts as $post ) {
             if ( isset( $post[$location_grid_meta_key] ) && is_array( $post[$location_grid_meta_key] ) && count( $post[$location_grid_meta_key] ) > 0 ) {
                 foreach ( $post[$location_grid_meta_key] as $location ) {
-                    $features[] = array(
-                        'type' => 'Feature',
-                        'properties' => array(
-                            'address' => $location['address'] ?? '',
-                            'post_id' => $location['post_id'],
-                            'name' => $post['name'] ?? $location['label'],
-                            'post_type' => $post_type
-                        ),
-                        'geometry' => array(
-                            'type' => 'Point',
-                            'coordinates' => array(
-                                $location['lng'],
-                                $location['lat'],
-                                1
+                    if ( !empty( $location['lng'] ) && !empty( $location['lat'] ) ) {
+                        $features[] = array(
+                            'type' => 'Feature',
+                            'properties' => array(
+                                'address' => $location['address'] ?? '',
+                                'post_id' => $post['ID'],
+                                'name' => $post['name'] ?? ( $location['label'] ?? '' ),
+                                'post_type' => $post_type
                             ),
-                        ),
-                    );
+                            'geometry' => array(
+                                'type' => 'Point',
+                                'coordinates' => array(
+                                    $location['lng'],
+                                    $location['lat'],
+                                    1
+                                )
+                            )
+                        );
+                    }
                 }
             }
         }
@@ -749,6 +1112,55 @@ class Disciple_Tools_AI_API {
             }
             return null;
         }, $matches );
+    }
+
+    private static function simplified_convert_filter_fields_from_obfuscated_to_plain( $filter_fields, $pii_mappings, $multiple_options = [] ): array {
+        $fields = [];
+
+        if ( is_array( $pii_mappings ) && is_array( $filter_fields ) && is_array( $multiple_options ) ) {
+            foreach ( $filter_fields as $field ) {
+                if ( is_array( $field ) ) {
+                    foreach ( $field as $key => $value ) {
+                        $fields[ $key ] = [];
+                        if ( is_array( $value ) ) {
+                            foreach ( $value as $obfuscated_value ) {
+
+                                /**
+                                 * First, search across multiple options; which should already contain system ids.
+                                 * Failing that, then simply proceed with pii mapping or existing obfuscated value.
+                                 */
+
+                                $extracted_option = self::extract_multiple_option_by_key_value( $multiple_options, 'pii_prompt', $obfuscated_value );
+                                if ( !empty( $extracted_option ) && isset( $extracted_option['options'] ) && is_array( $extracted_option['options'] ) && ( count( $extracted_option['options'] ) > 0 ) && isset( $extracted_option['options'][0]['id'] ) ) {
+                                    $fields[ $key ][] = $extracted_option['options'][0]['id'];
+                                } elseif ( isset( $pii_mappings[ $obfuscated_value ] ) ) {
+                                    $fields[ $key ][] = $pii_mappings[ $obfuscated_value ];
+                                } else {
+                                    $fields[ $key ][] = $obfuscated_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $fields = $filter_fields;
+        }
+
+        return $fields;
+    }
+
+    private static function extract_multiple_option_by_key_value( $multiple_options, $key, $value ): array {
+        $extracted_option = [];
+        foreach ( [ 'locations', 'users', 'posts' ] as $options_id ) {
+            if ( empty( $extracted_option ) && is_array( $multiple_options[ $options_id ] ) ) {
+                $extracted_option = array_filter( $multiple_options[ $options_id ], function( $option ) use ( $key, $value ) {
+                    return isset( $option[ $key ] ) && $option[ $key ] === $value;
+                } );
+            }
+        }
+
+        return !empty( $extracted_option ) ? $extracted_option[0] : [];
     }
 
     private static function convert_filter_fields_from_obfuscated_to_plain( $filter_fields, $pii_mappings ): array {

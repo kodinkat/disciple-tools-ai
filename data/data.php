@@ -40,6 +40,7 @@ class Disciple_Tools_AI_Data {
      * Disciple_Tools_AI_Data constructor.
      */
     public function __construct() {
+        add_filter( 'dt_ai_field_specs', [ $this, 'dt_ai_field_specs' ], 10, 2 );
         add_filter( 'dt_ai_filter_specs', [ $this, 'dt_ai_filter_specs' ], 10, 2 );
         add_filter( 'dt_ai_connection_specs', [ $this, 'dt_ai_connection_specs' ], 10, 1 );
     }
@@ -116,6 +117,53 @@ class Disciple_Tools_AI_Data {
         }
 
         return $specs;
+    }
+
+    public function dt_ai_field_specs( $field_specs, $post_type ): array {
+
+        /**
+         * Load the various parts which will eventually be used
+         * to construct the field generation model specification.
+         */
+
+        $fields_dir = __DIR__ . '/fields/';
+
+        $brief = $this->get_data( $fields_dir . '0-brief/brief.txt' );
+        $instructions = $this->get_data( $fields_dir . '1-instructions/instructions.txt' );
+        $considerations = $this->get_data( $fields_dir . '2-considerations/considerations.txt' );
+
+        /**
+         * Create record post-type specification details for given post-type.
+         */
+
+        $post_type_specs = $this->generate_record_post_type_specs( $post_type );
+
+        /**
+         * The extraction of examples will require additional logic, to work into the desired shape.
+         */
+
+        $examples = [];
+        $examples[] = 'Examples';
+        foreach ( DT_Posts::get_field_types() as $field_type_key => $field_type ) {
+            $path = $fields_dir . '3-examples/'. $field_type_key .'/examples.txt';
+            if ( file_exists( $path ) ) {
+                $examples = array_merge( $examples, $this->reshape_examples( $this->get_data( $path ), false ) );
+            }
+        }
+
+        /**
+         * Finally, build and return the required specification shape.
+         */
+
+        $field_specs['fields'] = [
+            'brief' => $brief,
+            'post_type_specs' => $post_type_specs,
+            'instructions' => $instructions,
+            'considerations' => $considerations,
+            'examples' => $examples
+        ];
+
+        return $field_specs;
     }
 
     public function dt_ai_filter_specs( $filter_specs, $post_type ): array {

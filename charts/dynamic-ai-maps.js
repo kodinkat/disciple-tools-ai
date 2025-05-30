@@ -284,7 +284,13 @@
          * If so, then display modal with connection options.
          */
 
-        if ((data?.status === 'multiple_options_detected') && (data?.multiple_options)) {
+        if (data?.status === 'error') {
+          alert( (data?.message) ? data.message : `${window.lodash.escape(window.dt_mapbox_metrics.translations.default_error_msg)}` );
+
+          document.getElementById('filter_spinner').style.display = 'none';
+          document.getElementById('filter_icon').style.display = 'inline-block';
+
+        } else if ((data?.status === 'multiple_options_detected') && (data?.multiple_options)) {
           window.show_multiple_options_modal(data.multiple_options);
 
         } else if ((data?.status === 'success') && (data?.points)) {
@@ -512,6 +518,10 @@
         // If successful, load points.
         if ((data?.status === 'success') && (data?.points)) {
           window.load_points(data.points);
+
+        } else if (data?.status === 'error') {
+          alert( (data?.message) ? data.message : `${window.lodash.escape(window.dt_mapbox_metrics.translations.default_error_msg)}` );
+
         }
 
         // Stop spinning....

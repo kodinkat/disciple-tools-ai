@@ -322,7 +322,13 @@ class Disciple_Tools_AI_Tile
                                  * If so, then display modal with connection options.
                                  */
 
-                                if ((response?.status === 'multiple_options_detected') && (response?.multiple_options)) {
+                                if (response?.status === 'error') {
+                                    alert( response?.message );
+
+                                    document.getElementById('ai_filter_spinner').style.display = 'none';
+                                    document.getElementById('ai_filter_icon').style.display = 'inline-block';
+
+                                } else if ((response?.status === 'multiple_options_detected') && (response?.multiple_options)) {
                                     window.show_multiple_options_modal(response.multiple_options);
 
                                 } else if ((response?.status === 'success') && (response?.filter)) {
@@ -558,6 +564,10 @@ class Disciple_Tools_AI_Tile
                         // If successful, load points.
                         if ((data?.status === 'success') && (data?.filter)) {
                             create_custom_filter(data.filter);
+
+                        } else if (data?.status === 'error') {
+                            alert( data?.message );
+
                         }
 
                         // Stop spinning....

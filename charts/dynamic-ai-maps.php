@@ -65,6 +65,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
                 ],
                 'translations' => [
                     'placeholder' => __( 'Describe the map you wish to view...', 'disciple-tools-ai' ),
+                    'default_error_msg' => __( 'Process terminated, due to errors!', 'disciple-tools-ai' ),
                     'details_title' => __( 'Maps', 'disciple-tools-ai' ),
                     'multiple_options' => [
                         'title' => __( 'Multiple Options Detected', 'disciple-tools-ai' ),
@@ -117,7 +118,7 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
          */
 
         $response = Disciple_Tools_AI_API::list_posts( $post_type, $prompt );
-        if ( isset( $response['status'] ) && $response['status'] === 'multiple_options_detected' ) {
+        if ( isset( $response['status'] ) && in_array( $response['status'], [ 'error', 'multiple_options_detected' ] ) ) {
             return $response;
         }
 
@@ -150,6 +151,14 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
     private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections ): array {
 
         $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections );
+
+        /**
+         * Ensure any encountered errors are echoed directly back to calling client.
+         */
+
+        if ( isset( $response['status'] ) && $response['status'] == 'error' ) {
+            return $response;
+        }
 
         /**
          * Next, filter out records with valid location metadata and format in required

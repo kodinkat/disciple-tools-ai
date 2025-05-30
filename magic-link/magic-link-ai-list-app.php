@@ -459,7 +459,7 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
          */
 
         $response = Disciple_Tools_AI_API::list_posts( $post_type, $prompt );
-        if ( isset( $response['status'] ) && $response['status'] === 'multiple_options_detected' ) {
+        if ( isset( $response['status'] ) && in_array( $response['status'], [ 'error', 'multiple_options_detected' ] ) ) {
             return $response;
         }
 
@@ -480,6 +480,14 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
     private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections ): array {
 
         $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections );
+
+        /**
+         * Ensure any encountered errors are echoed directly back to calling client.
+         */
+
+        if ( isset( $response['status'] ) && $response['status'] == 'error' ) {
+            return $response;
+        }
 
         /**
          * Finally, the finish line - return the response.

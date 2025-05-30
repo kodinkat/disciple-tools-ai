@@ -38,7 +38,12 @@ function create_filter() {
        * If so, then display modal with connection options.
        */
 
-      if ((json?.status === 'multiple_options_detected') && (json?.multiple_options)) {
+      if (json?.status === 'error') {
+        alert( json?.message );
+
+        temp_spinner.setAttribute('class', 'loading-spinner inactive');
+
+      } else if ((json?.status === 'multiple_options_detected') && (json?.multiple_options)) {
         show_multiple_options_modal(json.multiple_options);
 
       } else if ((json?.status === 'success') && (json?.posts)) {
@@ -295,6 +300,10 @@ function handle_multiple_options_submit(modal) {
     // If successful, list posts.
     if ((data?.status === 'success') && (data?.posts)) {
       load_list_items(data.posts);
+
+    } else if (data?.status === 'error') {
+      alert( data?.message );
+
     }
   })
   .fail(function (err) {
