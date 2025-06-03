@@ -1049,23 +1049,23 @@ class Disciple_Tools_AI_API {
         $post_names = self::generate_post_names( $post_type );
 
         // Better tokenization: split by various whitespace and punctuation
-        $prompt_tokens = preg_split('/[\s,;:!?\.\(\)\[\]\{\}"\']+/', $prompt, -1, PREG_SPLIT_NO_EMPTY);
+        $prompt_tokens = preg_split( '/[\s,;:!?\.\(\)\[\]\{\}"\']+/', $prompt, -1, PREG_SPLIT_NO_EMPTY );
 
         $found_names = [];
         $used_tokens = []; // Track which token positions have been used
 
         // FIRST: Check 3-word combinations
-        for ($i = 0; $i < count($prompt_tokens) - 2; $i++) {
+        for ( $i = 0; $i < count( $prompt_tokens ) - 2; $i++ ) {
             // Skip if any of these tokens are already used
-            if (isset($used_tokens[$i]) || isset($used_tokens[$i + 1]) || isset($used_tokens[$i + 2])) {
+            if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) ) {
                 continue;
             }
-            
-            $three_word = trim($prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2]);
-            if (strlen($three_word) >= $min_chars) {
-                $matches = self::find_name_matches($three_word, $post_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_names = array_merge($found_names, $matches);
+
+            $three_word = trim( $prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2] );
+            if ( strlen( $three_word ) >= $min_chars ) {
+                $matches = self::find_name_matches( $three_word, $post_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_names = array_merge( $found_names, $matches );
                     // Mark these tokens as used
                     $used_tokens[$i] = true;
                     $used_tokens[$i + 1] = true;
@@ -1075,36 +1075,36 @@ class Disciple_Tools_AI_API {
         }
 
         // SECOND: Check 2-word combinations (only for unused tokens)
-        for ($i = 0; $i < count($prompt_tokens) - 1; $i++) {
+        for ( $i = 0; $i < count( $prompt_tokens ) - 1; $i++ ) {
             // Skip if any of these tokens are already used
-            if (isset($used_tokens[$i]) || isset($used_tokens[$i + 1])) {
+            if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) ) {
                 continue;
             }
-            
-            $two_word = trim($prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1]);
-            if (strlen($two_word) >= $min_chars) {
-                $matches = self::find_name_matches($two_word, $post_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_names = array_merge($found_names, $matches);
+
+            $two_word = trim( $prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] );
+            if ( strlen( $two_word ) >= $min_chars ) {
+                $matches = self::find_name_matches( $two_word, $post_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_names = array_merge( $found_names, $matches );
                     // Mark these tokens as used
                     $used_tokens[$i] = true;
                     $used_tokens[$i + 1] = true;
                 }
             }
         }
-        
+
         // THIRD: Check single words (only for unused tokens)
-        for ($i = 0; $i < count($prompt_tokens); $i++) {
+        for ( $i = 0; $i < count( $prompt_tokens ); $i++ ) {
             // Skip if this token is already used
-            if (isset($used_tokens[$i])) {
+            if ( isset( $used_tokens[$i] ) ) {
                 continue;
             }
-            
-            $token = trim($prompt_tokens[$i]);
-            if (strlen($token) >= $min_chars) {
-                $matches = self::find_name_matches($token, $post_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_names = array_merge($found_names, $matches);
+
+            $token = trim( $prompt_tokens[$i] );
+            if ( strlen( $token ) >= $min_chars ) {
+                $matches = self::find_name_matches( $token, $post_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_names = array_merge( $found_names, $matches );
                     // Mark this token as used
                     $used_tokens[$i] = true;
                 }
@@ -1112,58 +1112,58 @@ class Disciple_Tools_AI_API {
         }
 
         // Remove duplicates and return
-        return array_unique($found_names);
+        return array_unique( $found_names );
     }
 
-    private static function find_name_matches($search_term, $post_names, $similarity_threshold, $max_levenshtein_distance): array {
+    private static function find_name_matches( $search_term, $post_names, $similarity_threshold, $max_levenshtein_distance ): array {
         $matches = [];
-        $search_term_lower = strtolower($search_term);
-        
+        $search_term_lower = strtolower( $search_term );
+
         // Skip very common words that are unlikely to be locations
         $common_words = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those'];
-        if (in_array($search_term_lower, $common_words)) {
+        if ( in_array( $search_term_lower, $common_words ) ) {
             return [];
         }
 
-        foreach ($post_names as $post_name) {
-            $post_name_lower = strtolower($post_name);
-            
+        foreach ( $post_names as $post_name ) {
+            $post_name_lower = strtolower( $post_name );
+
             // Exact match (case insensitive)
-            if ($search_term_lower === $post_name_lower) {
+            if ( $search_term_lower === $post_name_lower ) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Prefix match (improved regex)
-            if (preg_match('/^' . preg_quote($search_term_lower, '/') . '/i', $post_name_lower)) {
+            if ( preg_match( '/^' . preg_quote( $search_term_lower, '/' ) . '/i', $post_name_lower ) ) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Contains match (for partial names)
-            if (strpos($post_name_lower, $search_term_lower) !== false) {
+            if ( strpos( $post_name_lower, $search_term_lower ) !== false ) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Fuzzy matching using similar_text
             $similarity = 0;
-            similar_text($search_term_lower, $post_name_lower, $similarity);
-            if ($similarity >= $similarity_threshold) {
+            similar_text( $search_term_lower, $post_name_lower, $similarity );
+            if ( $similarity >= $similarity_threshold ) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Levenshtein distance for typos
-            if (strlen($search_term) > 3 && strlen($post_name) > 3) {
-                $distance = levenshtein($search_term_lower, $post_name_lower);
-                if ($distance <= $max_levenshtein_distance) {
+            if ( strlen( $search_term ) > 3 && strlen( $post_name ) > 3 ) {
+                $distance = levenshtein( $search_term_lower, $post_name_lower );
+                if ( $distance <= $max_levenshtein_distance ) {
                     $matches[] = $search_term;
                     continue;
                 }
             }
         }
-        
+
         return $matches;
     }
 
@@ -1173,26 +1173,26 @@ class Disciple_Tools_AI_API {
         $min_chars = $params['min_chars'] ?? 3;
         $similarity_threshold = $params['similarity_threshold'] ?? 75; // Slightly lower for locations due to variations
         $max_levenshtein_distance = $params['max_levenshtein_distance'] ?? 2;
-    
+
         // Fetch an array of all location names from the database
         $location_names = self::generate_location_names();
-    
+
         // First, extract potential addresses and postal codes using regex patterns
         $found_locations = [];
-        
+
         // Extract addresses (number + street patterns)
         $address_patterns = [
             '/\b\d+\s+[A-Za-z\s]+(Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd|Way|Place|Pl|Court|Ct|Circle|Cir)\b/i',
             '/\b\d+\s+[A-Za-z\s]+\s+(Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Boulevard|Blvd|Way|Place|Pl|Court|Ct|Circle|Cir)\b/i'
         ];
-        
-        foreach ($address_patterns as $pattern) {
-            preg_match_all($pattern, $prompt, $matches, PREG_SET_ORDER);
-            foreach ($matches as $match) {
-                $found_locations[] = trim($match[0]);
+
+        foreach ( $address_patterns as $pattern ) {
+            preg_match_all( $pattern, $prompt, $matches, PREG_SET_ORDER );
+            foreach ( $matches as $match ) {
+                $found_locations[] = trim( $match[0] );
             }
         }
-        
+
         // Extract postal codes (various international formats)
         $postal_patterns = [
             '/\b\d{5}(-\d{4})?\b/',           // US ZIP codes
@@ -1200,118 +1200,118 @@ class Disciple_Tools_AI_API {
             '/\b\d{4,5}\b/',                  // Simple numeric postal codes
             '/\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b/' // UK postal codes
         ];
-        
-        foreach ($postal_patterns as $pattern) {
-            preg_match_all($pattern, $prompt, $matches, PREG_SET_ORDER);
-            foreach ($matches as $match) {
-                $found_locations[] = trim($match[0]);
+
+        foreach ( $postal_patterns as $pattern ) {
+            preg_match_all( $pattern, $prompt, $matches, PREG_SET_ORDER );
+            foreach ( $matches as $match ) {
+                $found_locations[] = trim( $match[0] );
             }
         }
-    
+
         // Better tokenization: split by various whitespace and punctuation, but preserve some location-specific characters
-        $prompt_tokens = preg_split('/[\s,;:!?\(\)\[\]\{\}"\']+/', $prompt, -1, PREG_SPLIT_NO_EMPTY);
-        
+        $prompt_tokens = preg_split( '/[\s,;:!?\(\)\[\]\{\}"\']+/', $prompt, -1, PREG_SPLIT_NO_EMPTY );
+
         $used_tokens = []; // Track which token positions have been used
-        
+
         // FIRST: Check 4-word combinations (for longer place names like "United States of America")
         for ($i = 0; $i < count($prompt_tokens) - 3; $i++) {
-            if (isset($used_tokens[$i]) || isset($used_tokens[$i + 1]) || isset($used_tokens[$i + 2]) || isset($used_tokens[$i + 3])) {
+            if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) || isset( $used_tokens[$i + 3] ) ) {
                 continue;
             }
-            
-            $four_word = trim($prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2] . ' ' . $prompt_tokens[$i + 3]);
-            if (strlen($four_word) >= $min_chars) {
-                $matches = self::find_location_matches($four_word, $location_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_locations = array_merge($found_locations, $matches);
+
+            $four_word = trim( $prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2] . ' ' . $prompt_tokens[$i + 3] );
+            if ( strlen( $four_word ) >= $min_chars ) {
+                $matches = self::find_location_matches( $four_word, $location_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_locations = array_merge( $found_locations, $matches );
                     $used_tokens[$i] = $used_tokens[$i + 1] = $used_tokens[$i + 2] = $used_tokens[$i + 3] = true;
                 }
             }
         }
-        
+
         // SECOND: Check 3-word combinations (for places like "New York City", "Los Angeles County")
-        for ($i = 0; $i < count($prompt_tokens) - 2; $i++) {
-            if (isset($used_tokens[$i]) || isset($used_tokens[$i + 1]) || isset($used_tokens[$i + 2])) {
+        for ( $i = 0; $i < count( $prompt_tokens ) - 2; $i++ ) {
+            if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) ) {
                 continue;
             }
-            
-            $three_word = trim($prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2]);
-            if (strlen($three_word) >= $min_chars) {
-                $matches = self::find_location_matches($three_word, $location_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_locations = array_merge($found_locations, $matches);
+
+            $three_word = trim( $prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] . ' ' . $prompt_tokens[$i + 2] );
+            if ( strlen( $three_word ) >= $min_chars ) {
+                $matches = self::find_location_matches( $three_word, $location_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_locations = array_merge( $found_locations, $matches );
                     $used_tokens[$i] = $used_tokens[$i + 1] = $used_tokens[$i + 2] = true;
                 }
             }
         }
-        
+
         // THIRD: Check 2-word combinations (for places like "New York", "San Francisco")
-        for ($i = 0; $i < count($prompt_tokens) - 1; $i++) {
-            if (isset($used_tokens[$i]) || isset($used_tokens[$i + 1])) {
+        for ( $i = 0; $i < count( $prompt_tokens ) - 1; $i++ ) {
+            if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) ) {
                 continue;
             }
-            
-            $two_word = trim($prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1]);
-            if (strlen($two_word) >= $min_chars) {
-                $matches = self::find_location_matches($two_word, $location_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_locations = array_merge($found_locations, $matches);
+
+            $two_word = trim( $prompt_tokens[$i] . ' ' . $prompt_tokens[$i + 1] );
+            if ( strlen( $two_word ) >= $min_chars ) {
+                $matches = self::find_location_matches( $two_word, $location_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_locations = array_merge( $found_locations, $matches );
                     $used_tokens[$i] = $used_tokens[$i + 1] = true;
                 }
             }
         }
-        
+
         // FOURTH: Check single words (for single-word locations like "London", "Tokyo")
-        for ($i = 0; $i < count($prompt_tokens); $i++) {
-            if (isset($used_tokens[$i])) {
+        for ( $i = 0; $i < count( $prompt_tokens ); $i++ ) {
+            if ( isset( $used_tokens[$i] ) ) {
                 continue;
             }
-            
-            $token = trim($prompt_tokens[$i]);
-            if (strlen($token) >= $min_chars) {
-                $matches = self::find_location_matches($token, $location_names, $similarity_threshold, $max_levenshtein_distance);
-                if (!empty($matches)) {
-                    $found_locations = array_merge($found_locations, $matches);
+
+            $token = trim( $prompt_tokens[$i] );
+            if ( strlen( $token ) >= $min_chars ) {
+                $matches = self::find_location_matches( $token, $location_names, $similarity_threshold, $max_levenshtein_distance );
+                if ( !empty( $matches ) ) {
+                    $found_locations = array_merge( $found_locations, $matches );
                     $used_tokens[$i] = true;
                 }
             }
         }
-    
+
         // Remove duplicates and return
-        return array_unique($found_locations);
+        return array_unique( $found_locations );
     }
 
-    private static function find_location_matches($search_term, $location_names, $similarity_threshold, $max_levenshtein_distance): array {
+    private static function find_location_matches( $search_term, $location_names, $similarity_threshold, $max_levenshtein_distance ): array {
         $matches = [];
-        $search_term_lower = strtolower($search_term);
+        $search_term_lower = strtolower( $search_term );
 
         // Skip very common words that are unlikely to be locations
         $common_words = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those'];
-        if (in_array($search_term_lower, $common_words)) {
+        if ( in_array( $search_term_lower, $common_words ) ) {
             return [];
         }
-        
-        foreach ($location_names as $location_name) {
-            $location_name_lower = strtolower($location_name);
-            
+
+        foreach ( $location_names as $location_name ) {
+            $location_name_lower = strtolower( $location_name );
+
             // Exact match (case insensitive)
-            if ($search_term_lower === $location_name_lower) {
+            if ( $search_term_lower === $location_name_lower ) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Prefix match
             /*if (preg_match('/^' . preg_quote($search_term_lower, '/') . '/i', $location_name_lower)) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Contains match (for partial location names)
             if (strpos($location_name_lower, $search_term_lower) !== false) {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Fuzzy matching using similar_text (locations often have variations)
             $similarity = 0;
             similar_text($search_term_lower, $location_name_lower, $similarity);
@@ -1319,7 +1319,7 @@ class Disciple_Tools_AI_API {
                 $matches[] = $search_term;
                 continue;
             }
-            
+
             // Levenshtein distance for typos (common in location names)
             if (strlen($search_term) > 3 && strlen($location_name) > 3) {
                 $distance = levenshtein($search_term_lower, $location_name_lower);
@@ -1329,280 +1329,280 @@ class Disciple_Tools_AI_API {
                 }
             }*/
         }
-        
+
         return $matches;
     }
 
     private static function parse_prompt_for_pii_emails( $prompt ): array {
 
         $found_emails = [];
-    
+
         /**
          * Comprehensive email regex patterns to catch various email formats
          */
-        
+
         // Main email regex pattern - comprehensive but practical
         $email_patterns = [
             // Standard email format with proper validation
             '/\b[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,}\b/',
-            
+
             // Catch emails with + in local part (common for email aliases)
             '/\b[A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,}\b/',
-            
+
             // Catch emails surrounded by common punctuation
             '/[\s\(\[\{<"\']([A-Za-z0-9](?:[A-Za-z0-9._+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?\.[A-Za-z]{2,})[\s\)\]\}>"\']/',
-            
+
             // Simple fallback for basic email detection
             '/\b\S+@\S+\.\S+\b/'
         ];
-    
+
         // Apply each pattern and collect matches
-        foreach ($email_patterns as $pattern) {
-            preg_match_all($pattern, $prompt, $matches, PREG_SET_ORDER);
-            foreach ($matches as $match) {
+        foreach ( $email_patterns as $pattern ) {
+            preg_match_all( $pattern, $prompt, $matches, PREG_SET_ORDER );
+            foreach ( $matches as $match ) {
                 // For patterns with capture groups, use the captured email
-                $email = isset($match[1]) ? $match[1] : $match[0];
-                $email = trim($email);
-                
+                $email = isset( $match[1] ) ? $match[1] : $match[0];
+                $email = trim( $email );
+
                 // Additional validation to ensure it's a proper email
-                if (self::is_valid_email_format($email)) {
+                if ( self::is_valid_email_format( $email ) ) {
                     $found_emails[] = $email;
                 }
             }
         }
-    
+
         /**
          * Also check for emails that might be obfuscated or written in natural language
          */
-        
+
         // Look for "dot" and "at" patterns (e.g., "john dot smith at example dot com")
         $obfuscated_pattern = '/\b([A-Za-z0-9]+(?:\s*[\._-]\s*[A-Za-z0-9]+)*)\s+(?:at|@)\s+([A-Za-z0-9]+(?:\s*[\._-]\s*[A-Za-z0-9]+)*)\s*[\._]\s*([A-Za-z]{2,})\b/i';
-        preg_match_all($obfuscated_pattern, $prompt, $obfuscated_matches, PREG_SET_ORDER);
-        
-        foreach ($obfuscated_matches as $match) {
+        preg_match_all( $obfuscated_pattern, $prompt, $obfuscated_matches, PREG_SET_ORDER );
+
+        foreach ( $obfuscated_matches as $match ) {
             // Reconstruct the email from obfuscated format
-            $local = str_replace([' ', '_', '-'], '', $match[1]);
-            $domain = str_replace([' ', '_', '-'], '', $match[2]);
-            $tld = str_replace([' ', '_', '-'], '', $match[3]);
-            
+            $local = str_replace( [' ', '_', '-'], '', $match[1] );
+            $domain = str_replace( [' ', '_', '-'], '', $match[2] );
+            $tld = str_replace( [' ', '_', '-'], '', $match[3] );
+
             $reconstructed_email = $local . '@' . $domain . '.' . $tld;
-            if (self::is_valid_email_format($reconstructed_email)) {
+            if ( self::is_valid_email_format( $reconstructed_email ) ) {
                 $found_emails[] = $match[0]; // Store original obfuscated version
             }
         }
-    
+
         // Remove duplicates and return
-        return array_unique($found_emails);
+        return array_unique( $found_emails );
     }
 
-    private static function is_valid_email_format($email): bool {
+    private static function is_valid_email_format( $email ): bool {
         // Clean up the email
-        $email = trim($email);
-        
+        $email = trim( $email );
+
         // Basic structure validation
-        if (!str_contains($email, '@') || !str_contains($email, '.')) {
+        if ( !str_contains( $email, '@' ) || !str_contains( $email, '.' ) ) {
             return false;
         }
-        
+
         // Split into parts
-        $parts = explode('@', $email);
-        if (count($parts) !== 2) {
+        $parts = explode( '@', $email );
+        if ( count( $parts ) !== 2 ) {
             return false;
         }
-        
+
         $local = $parts[0];
         $domain = $parts[1];
-        
+
         // Validate local part (before @)
-        if (empty($local) || strlen($local) > 64) {
+        if ( empty( $local ) || strlen( $local ) > 64 ) {
             return false;
         }
-        
+
         // Check for valid characters in local part
-        if (!preg_match('/^[A-Za-z0-9._+-]+$/', $local)) {
+        if ( !preg_match( '/^[A-Za-z0-9._+-]+$/', $local ) ) {
             return false;
         }
-        
+
         // Local part cannot start or end with a dot
-        if (str_starts_with($local, '.') || str_ends_with($local, '.')) {
+        if ( str_starts_with( $local, '.' ) || str_ends_with( $local, '.' ) ) {
             return false;
         }
-        
+
         // No consecutive dots in local part
-        if (str_contains($local, '..')) {
+        if ( str_contains( $local, '..' ) ) {
             return false;
         }
-        
+
         // Validate domain part (after @)
-        if (empty($domain) || strlen($domain) > 255) {
+        if ( empty( $domain ) || strlen( $domain ) > 255 ) {
             return false;
         }
-        
+
         // Domain must contain at least one dot
-        if (!str_contains($domain, '.')) {
+        if ( !str_contains( $domain, '.' ) ) {
             return false;
         }
-        
+
         // Check for valid domain format
-        if (!preg_match('/^[A-Za-z0-9.-]+$/', $domain)) {
+        if ( !preg_match( '/^[A-Za-z0-9.-]+$/', $domain ) ) {
             return false;
         }
-        
+
         // Domain cannot start or end with a dot or hyphen
-        if (str_starts_with($domain, '.') || str_ends_with($domain, '.') || 
-            str_starts_with($domain, '-') || str_ends_with($domain, '-')) {
+        if ( str_starts_with( $domain, '.' ) || str_ends_with( $domain, '.' ) ||
+            str_starts_with( $domain, '-' ) || str_ends_with( $domain, '-' ) ) {
             return false;
         }
-        
+
         // No consecutive dots in domain
-        if (str_contains($domain, '..')) {
+        if (str_contains( $domain, '..' ) ) {
             return false;
         }
-        
+
         // Check TLD (top-level domain)
-        $domain_parts = explode('.', $domain);
-        $tld = end($domain_parts);
-        
+        $domain_parts = explode( '.', $domain );
+        $tld = end( $domain_parts );
+
         // TLD should be at least 2 characters and only letters
-        if (strlen($tld) < 2 || !preg_match('/^[A-Za-z]+$/', $tld)) {
+        if ( strlen( $tld ) < 2 || !preg_match( '/^[A-Za-z]+$/', $tld ) ) {
             return false;
         }
-        
+
         // Additional PHP filter validation
-        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+        return filter_var( $email, FILTER_VALIDATE_EMAIL ) !== false;
     }
 
     private static function parse_prompt_for_pii_phone_numbers( $prompt ): array {
 
         $found_phone_numbers = [];
-    
+
         /**
          * Comprehensive phone number regex patterns to catch various international formats
          */
-        
+
         $phone_patterns = [
             // International format with country code (+1, +44, etc.)
             '/\+\d{1,4}[\s\-\.]?\(?(\d{1,4})\)?[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{0,9}/',
-            
+
             // US/Canada formats
             '/\b\(?([0-9]{3})\)?[\s\-\.]?([0-9]{3})[\s\-\.]?([0-9]{4})\b/',           // (123) 456-7890, 123-456-7890, 123.456.7890
             '/\b1[\s\-\.]?\(?([0-9]{3})\)?[\s\-\.]?([0-9]{3})[\s\-\.]?([0-9]{4})\b/', // 1-123-456-7890, 1 (123) 456-7890
-            
+
             // UK formats
             '/\b0\d{2,4}[\s\-\.]?\d{3,8}\b/',                                          // 0207 123 4567, 01234-567890
             '/\b\+44[\s\-\.]?\d{2,4}[\s\-\.]?\d{3,8}\b/',                             // +44 207 123 4567
-            
+
             // European formats (general)
             '/\b\+\d{2}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}\b/',
-            
+
             // Australian formats
             '/\b\+61[\s\-\.]?\d{1}[\s\-\.]?\d{4}[\s\-\.]?\d{4}\b/',                   // +61 2 1234 5678
             '/\b0\d[\s\-\.]?\d{4}[\s\-\.]?\d{4}\b/',                                  // 02 1234 5678
-            
+
             // Generic international patterns
             '/\b\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}\b/',         // Basic 4-part numbers
             '/\b\d{3}[\s\-\.]?\d{7,10}\b/',                                           // 3 + 7-10 digits
-            
+
             // Mobile-specific patterns
             '/\b\+\d{1,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,6}\b/',       // International mobile
-            
+
             // Extension patterns
             '/\b\(?([0-9]{3})\)?[\s\-\.]?([0-9]{3})[\s\-\.]?([0-9]{4})[\s\-\.]?(?:ext?\.?|extension)[\s\-\.]?(\d{1,6})\b/i',
         ];
-    
+
         // Apply each pattern and collect matches
-        foreach ($phone_patterns as $pattern) {
-            preg_match_all($pattern, $prompt, $matches, PREG_SET_ORDER);
-            foreach ($matches as $match) {
-                $phone = trim($match[0]);
-                
+        foreach ( $phone_patterns as $pattern ) {
+            preg_match_all( $pattern, $prompt, $matches, PREG_SET_ORDER );
+            foreach ( $matches as $match ) {
+                $phone = trim( $match[0] );
+
                 // Additional validation to ensure it's a proper phone number
-                if (self::is_valid_phone_format($phone)) {
+                if ( self::is_valid_phone_format( $phone ) ) {
                     $found_phone_numbers[] = $phone;
                 }
             }
         }
-    
+
         /**
          * Also check for phone numbers written in natural language or with text
          */
-        
+
         // Look for patterns like "call me at", "phone:", "tel:", "mobile:", etc.
         $context_patterns = [
             '/(?:call|phone|tel|mobile|cell|contact)[\s:]*(\+?\d{1,4}[\s\-\.\(\)]?\d{1,4}[\s\-\.\(\)]?\d{1,4}[\s\-\.\(\)]?\d{1,9})/i',
             '/(?:number|#)[\s:]*(\+?\d{1,4}[\s\-\.\(\)]?\d{1,4}[\s\-\.\(\)]?\d{1,4}[\s\-\.\(\)]?\d{1,9})/i'
         ];
-        
-        foreach ($context_patterns as $pattern) {
-            preg_match_all($pattern, $prompt, $context_matches, PREG_SET_ORDER);
+
+        foreach ( $context_patterns as $pattern ) {
+            preg_match_all( $pattern, $prompt, $context_matches, PREG_SET_ORDER );
             foreach ($context_matches as $match) {
-                $phone = trim($match[1]);
-                if (self::is_valid_phone_format($phone)) {
+                $phone = trim( $match[1] );
+                if ( self::is_valid_phone_format( $phone ) ) {
                     $found_phone_numbers[] = $match[0]; // Store full context
                 }
             }
         }
-    
+
         // Remove duplicates and return
-        return array_unique(array_filter($found_phone_numbers));
+        return array_unique( array_filter( $found_phone_numbers ) );
     }
 
-    private static function is_valid_phone_format($phone): bool {
+    private static function is_valid_phone_format( $phone ): bool {
         // Clean up the phone number
-        $phone = trim($phone);
-        
+        $phone = trim( $phone );
+
         // Remove common separators for digit counting
-        $digits_only = preg_replace('/[^\d+]/', '', $phone);
-        
+        $digits_only = preg_replace( '/[^\d+]/', '', $phone );
+
         // Basic length validation - phone numbers should have at least 7 digits (local) up to 15 (international standard)
-        $digit_count = strlen(preg_replace('/[^\d]/', '', $digits_only));
-        if ($digit_count < 7 || $digit_count > 15) {
+        $digit_count = strlen( preg_replace( '/[^\d]/', '', $digits_only ) );
+        if ( $digit_count < 7 || $digit_count > 15 ) {
             return false;
         }
-        
+
         // Check for valid characters only
-        if (!preg_match('/^[\d\s\-\.\(\)\+ext]+$/i', $phone)) {
+        if ( !preg_match( '/^[\d\s\-\.\(\)\+ext]+$/i', $phone ) ) {
             return false;
         }
-        
+
         // Ensure it's not just repeating digits (like 1111111111)
         $clean_digits = preg_replace('/[^\d]/', '', $phone);
-        if (preg_match('/^(\d)\1+$/', $clean_digits)) {
+        if ( preg_match( '/^(\d)\1+$/', $clean_digits ) ) {
             return false;
         }
-        
+
         // Ensure it has a reasonable structure (not all separators)
-        if (preg_match('/^[\s\-\.\(\)\+]+$/', $phone)) {
+        if ( preg_match( '/^[\s\-\.\(\)\+]+$/', $phone ) ) {
             return false;
         }
-        
+
         // Check for valid patterns
         $valid_patterns = [
             // International with country code
             '/^\+\d{1,4}[\s\-\.]?[\d\s\-\.\(\)]{6,14}$/',
-            
+
             // US/Canada format
             '/^1?[\s\-\.]?\(?[0-9]{3}\)?[\s\-\.]?[0-9]{3}[\s\-\.]?[0-9]{4}(?:[\s\-\.]?(?:ext?\.?|extension)[\s\-\.]?\d{1,6})?$/i',
-            
+
             // UK format
             '/^(?:\+44|0)\d{2,4}[\s\-\.]?\d{3,8}$/',
-            
+
             // European format
             '/^\+\d{2}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}$/',
-            
+
             // Generic format
             '/^\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{0,4}$/',
-            
+
             // Mobile-specific
             '/^\+\d{1,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,4}[\s\-\.]?\d{2,6}$/'
         ];
-        
-        foreach ($valid_patterns as $pattern) {
-            if (preg_match($pattern, $phone)) {
+
+        foreach ( $valid_patterns as $pattern ) {
+            if ( preg_match( $pattern, $phone ) ) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
