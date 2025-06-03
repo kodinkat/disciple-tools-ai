@@ -1055,7 +1055,8 @@ class Disciple_Tools_AI_API {
         $used_tokens = []; // Track which token positions have been used
 
         // FIRST: Check 3-word combinations
-        for ( $i = 0; $i < count( $prompt_tokens ) - 2; $i++ ) {
+        $max_count = count( $prompt_tokens ) - 2;
+        for ( $i = 0; $i < $max_count; $i++ ) {
             // Skip if any of these tokens are already used
             if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) ) {
                 continue;
@@ -1075,7 +1076,8 @@ class Disciple_Tools_AI_API {
         }
 
         // SECOND: Check 2-word combinations (only for unused tokens)
-        for ( $i = 0; $i < count( $prompt_tokens ) - 1; $i++ ) {
+        $max_count = count( $prompt_tokens ) - 1;
+        for ( $i = 0; $i < $max_count; $i++ ) {
             // Skip if any of these tokens are already used
             if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) ) {
                 continue;
@@ -1094,7 +1096,8 @@ class Disciple_Tools_AI_API {
         }
 
         // THIRD: Check single words (only for unused tokens)
-        for ( $i = 0; $i < count( $prompt_tokens ); $i++ ) {
+        $max_count = count( $prompt_tokens );
+        for ( $i = 0; $i < $max_count; $i++ ) {
             // Skip if this token is already used
             if ( isset( $used_tokens[$i] ) ) {
                 continue;
@@ -1120,7 +1123,7 @@ class Disciple_Tools_AI_API {
         $search_term_lower = strtolower( $search_term );
 
         // Skip very common words that are unlikely to be locations
-        $common_words = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those'];
+        $common_words = [ 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those' ];
         if ( in_array( $search_term_lower, $common_words ) ) {
             return [];
         }
@@ -1214,7 +1217,8 @@ class Disciple_Tools_AI_API {
         $used_tokens = []; // Track which token positions have been used
 
         // FIRST: Check 4-word combinations (for longer place names like "United States of America")
-        for ($i = 0; $i < count($prompt_tokens) - 3; $i++) {
+        $max_count = count( $prompt_tokens ) - 3;
+        for ( $i = 0; $i < $max_count; $i++ ) {
             if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) || isset( $used_tokens[$i + 3] ) ) {
                 continue;
             }
@@ -1230,7 +1234,8 @@ class Disciple_Tools_AI_API {
         }
 
         // SECOND: Check 3-word combinations (for places like "New York City", "Los Angeles County")
-        for ( $i = 0; $i < count( $prompt_tokens ) - 2; $i++ ) {
+        $max_count = count( $prompt_tokens ) - 2;
+        for ( $i = 0; $i < $max_count; $i++ ) {
             if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) || isset( $used_tokens[$i + 2] ) ) {
                 continue;
             }
@@ -1246,7 +1251,8 @@ class Disciple_Tools_AI_API {
         }
 
         // THIRD: Check 2-word combinations (for places like "New York", "San Francisco")
-        for ( $i = 0; $i < count( $prompt_tokens ) - 1; $i++ ) {
+        $max_count = count( $prompt_tokens ) - 1;
+        for ( $i = 0; $i < $max_count; $i++ ) {
             if ( isset( $used_tokens[$i] ) || isset( $used_tokens[$i + 1] ) ) {
                 continue;
             }
@@ -1262,7 +1268,8 @@ class Disciple_Tools_AI_API {
         }
 
         // FOURTH: Check single words (for single-word locations like "London", "Tokyo")
-        for ( $i = 0; $i < count( $prompt_tokens ); $i++ ) {
+        $max_count = count( $prompt_tokens );
+        for ( $i = 0; $i < $max_count; $i++ ) {
             if ( isset( $used_tokens[$i] ) ) {
                 continue;
             }
@@ -1286,7 +1293,7 @@ class Disciple_Tools_AI_API {
         $search_term_lower = strtolower( $search_term );
 
         // Skip very common words that are unlikely to be locations
-        $common_words = ['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those'];
+        $common_words = [ 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those' ];
         if ( in_array( $search_term_lower, $common_words ) ) {
             return [];
         }
@@ -1381,9 +1388,9 @@ class Disciple_Tools_AI_API {
 
         foreach ( $obfuscated_matches as $match ) {
             // Reconstruct the email from obfuscated format
-            $local = str_replace( [' ', '_', '-'], '', $match[1] );
-            $domain = str_replace( [' ', '_', '-'], '', $match[2] );
-            $tld = str_replace( [' ', '_', '-'], '', $match[3] );
+            $local = str_replace( [ ' ', '_', '-' ], '', $match[1] );
+            $domain = str_replace( [ ' ', '_', '-' ], '', $match[2] );
+            $tld = str_replace( [ ' ', '_', '-' ], '', $match[3] );
 
             $reconstructed_email = $local . '@' . $domain . '.' . $tld;
             if ( self::is_valid_email_format( $reconstructed_email ) ) {
@@ -1455,7 +1462,7 @@ class Disciple_Tools_AI_API {
         }
 
         // No consecutive dots in domain
-        if (str_contains( $domain, '..' ) ) {
+        if ( str_contains( $domain, '..' ) ) {
             return false;
         }
 
@@ -1535,7 +1542,7 @@ class Disciple_Tools_AI_API {
 
         foreach ( $context_patterns as $pattern ) {
             preg_match_all( $pattern, $prompt, $context_matches, PREG_SET_ORDER );
-            foreach ($context_matches as $match) {
+            foreach ( $context_matches as $match ) {
                 $phone = trim( $match[1] );
                 if ( self::is_valid_phone_format( $phone ) ) {
                     $found_phone_numbers[] = $match[0]; // Store full context
@@ -1566,7 +1573,7 @@ class Disciple_Tools_AI_API {
         }
 
         // Ensure it's not just repeating digits (like 1111111111)
-        $clean_digits = preg_replace('/[^\d]/', '', $phone);
+        $clean_digits = preg_replace( '/[^\d]/', '', $phone );
         if ( preg_match( '/^(\d)\1+$/', $clean_digits ) ) {
             return false;
         }
