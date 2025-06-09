@@ -1,14 +1,14 @@
-Show all contacts with English as the main language. ==//== {"fields": [{"languages": ["en"]}]}
-Show records with French or Spanish as a language. ==//== {"fields": [{"languages": ["fr", "es"]}]}
+Show all contacts with English as the main language. ==//== [{"field_key": "languages", "field_value": "en", "intent": "EQUALS" }]
+Show records with French or Spanish as a language. ==//== [{"field_key": "languages", "field_value": ["fr", "es"], "intent": "EQUALS" }]
 
-Show records with a personal source. ==//== {"fields": [{"sources": ["personal"]}]}
-Show contacts with a web source. ==//== {"fields": [{"sources": ["web"]}]}
-Show transferred contacts. ==//== {"fields": [{"sources": ["transfer"]}]}
+Show records with a personal source. ==//== [{"field_key": "sources", "field_value": "personal", "intent": "EQUALS" }]
+Show contacts with a web source. ==//== [{"field_key": "sources", "field_value": "web", "intent": "EQUALS" }]
+Show transferred contacts. ==//== [{"field_key": "sources", "field_value": "transfer", "intent": "EQUALS" }]
 
-Show contacts who have a bible. ==//== {"fields": [{"milestones": ["milestone_has_bible"]}]}
-Show contacts reading the bible. ==//== {"fields": [{"milestones": ["milestone_reading_bible"]}]}
-Show contacts who have stated belief. ==//== {"fields": [{"milestones": ["milestone_belief"]}]}
-Show contacts who can share the Gospel and their testimony, but are not. ==//== {"fields": [{"milestones": ["milestone_can_share", "-milestone_sharing"]}]}
-Show records with a baptized milestone. ==//== {"fields": [{"milestones": ["milestone_baptized"]}]}
-Show records with a Baptizing milestone. ==//== {"fields": [{"milestones": ["milestone_baptizing"]}]}
-Show contacts in a church group or starting a church. ==//== {"fields": [{"milestones": ["milestone_in_group", "milestone_planting"]}]}
+Show contacts who have a bible. ==//== [{"field_key": "milestones", "field_value": "milestone_has_bible", "intent": "EQUALS" }]
+Show contacts reading the bible. ==//== [{"field_key": "milestones", "field_value": "milestone_reading_bible", "intent": "EQUALS" }]
+Show contacts who have stated belief. ==//== [{"field_key": "milestones", "field_value": "milestone_belief", "intent": "EQUALS" }]
+Show contacts who can share the Gospel and their testimony, but are not. ==//== [{"field_key": "milestones", "field_value": "milestone_can_share", "intent": "EQUALS" }, {"field_key": "milestones", "field_value": "milestone_sharing", "intent": "NOT_EQUALS" }]
+Show records with a baptized milestone. ==//== [{"field_key": "milestones", "field_value": "milestone_baptized", "intent": "EQUALS" }]
+Show records with a Baptizing milestone. ==//== [{"field_key": "milestones", "field_value": "milestone_baptizing", "intent": "EQUALS" }]
+Show contacts in a church group or starting a church. ==//== [{"field_key": "milestones", "field_value": ["milestone_in_group", "milestone_planting"], "intent": "EQUALS" }]

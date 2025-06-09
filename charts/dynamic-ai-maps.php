@@ -107,8 +107,8 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         $prompt = $params['prompt'];
         $post_type = $params['post_type'];
 
-        if ( isset( $params['selections'] ) ) {
-            return $this->handle_create_filter_with_selections_request( $post_type, $prompt, $params['selections'] );
+        if ( isset( $params['selections'], $params['pii'], $params['filtered_fields'] ) ) {
+            return $this->handle_create_filter_with_selections_request( $post_type, $prompt, $params['selections'], $params['pii'], $params['filtered_fields'] );
         } else {
             return $this->handle_create_filter_request( $post_type, $prompt );
         }
@@ -152,9 +152,9 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
         ];
     }
 
-    private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections ): array {
+    private function handle_create_filter_with_selections_request( $post_type, $prompt, $selections, $pii, $filtered_fields ): array {
 
-        $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections );
+        $response = Disciple_Tools_AI_API::list_posts_with_selections( $post_type, $prompt, $selections, $pii, $filtered_fields );
 
         /**
          * Ensure any encountered errors are echoed directly back to calling client.

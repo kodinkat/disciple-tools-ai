@@ -52,9 +52,11 @@ class Disciple_Tools_AI_API {
         $posts = [];
         $multiple_posts = [];
 
+        $connections = self::parse_fields_for_connections( $post_type, $fields );
+
         // Extract any locations from identified connections.
-        if ( !empty( $fields['locations'] ) ) {
-            $locations = self::parse_locations_for_ids( $fields['locations'], $pii['mappings'] ?? [] );
+        if ( !empty( $connections['locations'] ) ) {
+            $locations = self::parse_locations_for_ids( $connections['locations'], $pii['mappings'] ?? [] );
 
             // Identify locations with multiple options.
             $multiple_locations = array_filter( $locations, function( $location ) {
@@ -63,14 +65,14 @@ class Disciple_Tools_AI_API {
         }
 
         // Extract any users (takes priority over posts) or posts from identified connections.
-        if ( !empty( $fields['connections'] ) ) {
+        if ( !empty( $connections['connections'] ) ) {
 
             /**
              * Users.
              */
 
             // Extract any users from identified connections.
-            $users = self::parse_connections_for_users( $fields['connections'], $post_type, $pii['mappings'] ?? [] );
+            $users = self::parse_connections_for_users( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
 
             // Identify users with multiple options.
             $multiple_users = array_filter( $users, function( $user ) {
@@ -82,7 +84,7 @@ class Disciple_Tools_AI_API {
              */
 
             // Extract any post-names from identified connections.
-            $posts = self::parse_connections_for_post_names( $fields['connections'], $post_type, $pii['mappings'] ?? [] );
+            $posts = self::parse_connections_for_post_names( $connections['connections'], $post_type, $pii['mappings'] ?? [] );
 
             // Identify posts with multiple options.
             $multiple_posts = array_filter( $posts, function( $post ) {
@@ -101,7 +103,9 @@ class Disciple_Tools_AI_API {
                     'locations' => $multiple_locations,
                     'users' => $multiple_users,
                     'posts' => $multiple_posts
-                ]
+                ],
+                'pii' => $pii,
+                'fields' => $fields
             ];
         }
 
@@ -109,25 +113,25 @@ class Disciple_Tools_AI_API {
          * If no multiple options are detected, proceed with system query.
          * But first, ensure any remaining obfuscated entries are mapped back
          * into plain prompt values, or corresponding multiple option ids.
+         *
+         * Also, reshape fields into required list post query structure.
          */
 
-        if ( $has_pii ) {
-            $fields['fields'] = self::simplified_convert_filter_fields_from_obfuscated_to_plain( $fields['fields'] ?? [], $pii['mappings'], [
-                'locations' => $multiple_locations,
-                'users' => $multiple_users,
-                'posts' => $multiple_posts
-            ] );
-        }
+        $reshaped_fields = self::reshape_fields_to_required_list_post_query_structure( $post_type, $fields, $pii['mappings'], [
+            'locations' => $multiple_locations,
+            'users' => $multiple_users,
+            'posts' => $multiple_posts
+        ] );
 
         /**
          * Finally, query system for posts, using inferred filters.
          */
 
         $list_posts = [];
-        if ( !is_wp_error( $fields ) && isset( $fields['fields'] ) ) {
+        if ( !is_wp_error( $reshaped_fields ) ) {
             $list = DT_Posts::list_posts( $post_type, [
-                'fields' => $fields['fields']
-            ]);
+                'fields' => $reshaped_fields
+            ] );
 
             $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
         }
@@ -140,97 +144,75 @@ class Disciple_Tools_AI_API {
             ],
             'pii' => $pii,
             'connections' => [
-                //'parsed' => $connections,
                 'extracted' => [
                     'locations' => $locations,
                     'users' => $users,
                     'posts' => $posts
                 ]
             ],
-            'filter' => $fields,
+            'filter' => $reshaped_fields,
             'posts' => $list_posts
         ];
     }
 
-    public static function simplified_list_posts_with_selections( string $post_type, string $prompt, array $selections ): array {
-        $processed_prompts = [];
-        $parsed_prompt = $prompt;
+    private static function reshape_selection_mappings( $selections, $pii_mappings, $processed_prompts = [] ): array {
+        $reshaped_mappings = [];
+
+        foreach ( $selections ?? [] as $selection ) {
+            if ( !in_array( $selection['prompt'], $processed_prompts ) && $selection['id'] !== 'ignore' ) {
+                $prompt = $selection['prompt'];
+                $pii_prompt = array_search( $prompt, $pii_mappings );
+
+                $reshaped_mappings[] = [
+                    'prompt' => $prompt,
+                    'pii_prompt' => !empty( $pii_prompt ) ? $pii_prompt : $prompt,
+                    'options' => [
+                        [
+                            'id' => $selection['id'],
+                            'label' => $selection['label']
+                        ]
+                    ]
+                ];
+
+                $processed_prompts[] = $prompt;
+            }
+        }
+
+        return [
+            'mappings' =>  $reshaped_mappings,
+            'processed_prompts' => $processed_prompts
+        ];
+    }
+
+    public static function simplified_list_posts_with_selections( string $post_type, string $prompt, array $selections, array $pii, array $filtered_fields ): array {
 
         /**
          * First, update prompt with selected replacements.
          */
 
-        // Process location selections.
-        foreach ( $selections['locations'] ?? [] as $location ) {
-            if ( !in_array( $location['prompt'], $processed_prompts ) && $location['id'] !== 'ignore' ) {
-                $replacement = '@[####]('. $location['id'] .')';
-                $parsed_prompt = str_replace( $location['prompt'], $replacement, $parsed_prompt );
-
-                $processed_prompts[] = $location['prompt'];
-            }
-        }
-
-        // Process user selections.
-        foreach ( $selections['users'] ?? [] as $user ) {
-            if ( !in_array( $user['prompt'], $processed_prompts ) && $user['id'] !== 'ignore' ) {
-                $replacement = '@[####]('. $user['id'] .')';
-                $parsed_prompt = str_replace( $user['prompt'], $replacement, $parsed_prompt );
-
-                $processed_prompts[] = $user['prompt'];
-            }
-        }
-
-        // Process post selections.
-        foreach ( $selections['posts'] ?? [] as $post ) {
-            if ( !in_array( $post['prompt'], $processed_prompts ) && $post['id'] !== 'ignore' ) {
-                $replacement = '@[####]('. $post['id'] .')';
-                $parsed_prompt = str_replace( $post['prompt'], $replacement, $parsed_prompt );
-
-                $processed_prompts[] = $post['prompt'];
-            }
-        }
-
-        /**
-         * Before submitting to LLM for analysis, ensure to obfuscate any remaining PII.
-         */
-
-        $pii = self::parse_prompt_for_pii( $post_type, $parsed_prompt );
-
-        $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
-
-        $parsed_prompt = $has_pii ? $pii['prompt']['obfuscated'] : $parsed_prompt;
-
-        /**
-         * Almost home! Now we need to create the final query filter, based on parsed prompt.
-         */
-
-        $fields = self::parse_prompt_for_fields( $post_type, $prompt, $parsed_prompt );
-
-        /**
-         * Ensure any encountered errors are echoed back to calling client.
-         */
-
-        if ( isset( $fields['status'] ) && $fields['status'] == 'error' ) {
-            return $fields;
-        }
+        $locations = self::reshape_selection_mappings( $selections['locations'] ?? [], $pii['mappings'] );
+        $users = self::reshape_selection_mappings( $selections['users'] ?? [], $pii['mappings'], $locations['processed_prompts'] );
+        $posts = self::reshape_selection_mappings( $selections['posts'] ?? [], $pii['mappings'], $users['processed_prompts'] );
 
         /**
          * Ensure any remaining obfuscated entries are mapped back into plain prompt values, before executing returned filter fields.
          */
 
-        if ( $has_pii ) {
-            $fields['fields'] = self::simplified_convert_filter_fields_from_obfuscated_to_plain( $fields['fields'], $pii['mappings'] );
-        }
+        $reshaped_fields = self::reshape_fields_to_required_list_post_query_structure( $post_type, $filtered_fields, $pii['mappings'], [
+            'locations' => $locations['mappings'],
+            'users' => $users['mappings'],
+            'posts' => $posts['mappings']
+        ] );
 
         /**
-         * Next, using the inferred filter, query the posts.
+         * Finally, using the filtered fields, query the posts.
          */
 
         $list_posts = [];
-        if ( !is_wp_error( $fields ) && isset( $fields['fields'] ) ) {
+        if ( !is_wp_error( $reshaped_fields ) ) {
             $list = DT_Posts::list_posts( $post_type, [
-                'fields' => $fields['fields']
-            ]);
+                'fields' => $reshaped_fields
+            ] );
 
             $list_posts = ( !is_wp_error( $list ) && isset( $list['posts'] ) ) ? $list['posts'] : [];
         }
@@ -238,11 +220,10 @@ class Disciple_Tools_AI_API {
         return [
             'status' => 'success',
             'prompt' => [
-                'original' => $prompt,
-                'parsed' => $parsed_prompt
+                'original' => $prompt
             ],
             'pii' => $pii,
-            'filter' => $fields,
+            'filter' => $reshaped_fields,
             'posts' => $list_posts
         ];
     }
@@ -270,17 +251,8 @@ class Disciple_Tools_AI_API {
                 $llm_model_specs_content .= implode( '\n', $fields['brief'] ) .'\n';
             }
 
-            if ( !empty( $fields['post_type_specs'] ) ) {
-                // Reshape associated array into escaped json string.
-                $llm_model_specs_content .= addslashes( json_encode( $fields['post_type_specs'] ) ) . '\n';
-            }
-
             if ( !empty( $fields['instructions'] ) ) {
                 $llm_model_specs_content .= implode( '\n', $fields['instructions'] ) .'\n';
-            }
-
-            if ( !empty( $fields['considerations'] ) ) {
-                $llm_model_specs_content .= implode( '\n', $fields['considerations'] ) .'\n';
             }
 
             if ( !empty( $fields['examples'] ) ) {
@@ -331,8 +303,16 @@ class Disciple_Tools_AI_API {
                     $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
                     if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
 
+                        /**
+                         * Attempt to cleanse inferred.....
+                         */
+
+                        $cleansed_inferred_response = str_replace( [ '\n', '\r' ], '', trim( $inferred_response['choices'][0]['message']['content'] ) );
+                        $cleansed_inferred_response = str_replace( [ '\"' ], '"', $cleansed_inferred_response );
+
                         // Extract inferred filter into final response and stop retry attempts.
-                        $response = json_decode( str_replace( [ '\n', '\r' ], '', trim( $inferred_response['choices'][0]['message']['content'] ) ), true );
+                        $response = json_decode( $cleansed_inferred_response, true );
+
                         if ( !empty( $response ) ) {
                             $attempts = 2;
                         }
@@ -548,9 +528,9 @@ class Disciple_Tools_AI_API {
         ];
     }
 
-    public static function list_posts_with_selections( string $post_type, string $prompt, array $selections ): array {
+    public static function list_posts_with_selections( string $post_type, string $prompt, array $selections, array $pii, array $filtered_fields ): array {
 
-        return self::simplified_list_posts_with_selections( $post_type, $prompt, $selections );
+        return self::simplified_list_posts_with_selections( $post_type, $prompt, $selections, $pii, $filtered_fields );
 
         $processed_prompts = [];
         $parsed_prompt = $prompt;
@@ -878,6 +858,28 @@ class Disciple_Tools_AI_API {
         }
 
         return $response;
+    }
+
+    private static function parse_fields_for_connections( $post_type, $fields ): array {
+        $connections = [
+            'locations' => [],
+            'connections' => []
+        ];
+
+        $field_settings = DT_Posts::get_post_field_settings( $post_type );
+        foreach ( $fields ?? [] as $field ) {
+            if ( isset( $field[ 'field_value' ], $field_settings[ $field[ 'field_key' ] ] ) ) {
+                if ( in_array( $field_settings[ $field[ 'field_key' ] ]['type'], [ 'location', 'location_meta' ] ) ) {
+                    $connections['locations'][] = $field[ 'field_value' ];
+                }
+
+                if ( in_array( $field_settings[ $field[ 'field_key' ] ]['type'], [ 'user_select' ] ) ) {
+                    $connections['connections'][] = $field[ 'field_value' ];
+                }
+            }
+        }
+
+        return $connections;
     }
 
     public static function parse_locations_for_ids( $locations, $pii_mappings = [] ): array {
@@ -1611,6 +1613,180 @@ class Disciple_Tools_AI_API {
         }
 
         return false;
+    }
+
+    private static function reshape_fields_to_required_list_post_query_structure( $post_type, $fields, $pii_mappings = [], $multiple_options = [] ): array {
+        $reshaped_fields = [];
+        $status = null;
+
+        foreach ( $fields ?? [] as $field ) {
+            if ( isset( $field['field_key'], $field['field_value'] ) ) {
+                $field_key = $field['field_key'];
+                $field_value = $field['field_value'];
+                $intent = $field['intent'] ?? 'EQUALS';
+
+                /**
+                 * Extract values and append to field array accordingly. Separate
+                 * statuses and append if detected.
+                 */
+
+                $extracted_values = self::extract_reshaped_field_values( $field_key, $field_value, $intent, $pii_mappings, $multiple_options );
+
+                if ( empty( $reshaped_fields[ $field_key ] ) ) {
+                    $reshaped_fields[ $field_key ] = [];
+                }
+
+                $reshaped_fields[ $field_key ] = array_merge( $reshaped_fields[ $field_key ], $extracted_values['values'] );
+
+                $status = $extracted_values['status'] ?? null;
+            }
+        }
+
+        if ( !empty( $status ) ) {
+            $settings = DT_Posts::get_post_settings( $post_type, false );
+            $status_key = $settings['status_field']['status_key'] ?? null;
+            if ( !empty( $status_key ) ) {
+                $status_value = null;
+                switch ( $status ) {
+                    case 'STATUS_NEW':
+                        $status_value = 'new';
+                        break;
+                    case 'STATUS_ACTIVE':
+                        $status_value = 'active';
+                        break;
+                    case 'STATUS_INACTIVE':
+                        $status_value = 'inactive';
+                        break;
+                    case 'STATUS_NONE':
+                        $status_value = 'none';
+                        break;
+                    case 'STATUS_CLOSED':
+                        $status_value = 'closed';
+                        break;
+                    case 'STATUS_UNASSIGNABLE':
+                        $status_value = 'unassignable';
+                        break;
+                    case 'STATUS_UNASSIGNED':
+                        $status_value = 'unassigned';
+                        break;
+                    case 'STATUS_ASSIGNED':
+                        $status_value = 'assigned';
+                        break;
+                    case 'STATUS_PAUSED':
+                        $status_value = 'paused';
+                        break;
+                }
+
+                if ( !empty( $status_value ) ) {
+                    $reshaped_fields[ $status_key ] =  [$status_value];
+                }
+            }
+        }
+
+        $final_reshaped_fields = [];
+        foreach ( $reshaped_fields as $field => $values ) {
+            $final_reshaped_fields[] = [
+                $field => $values
+            ];
+        }
+
+        return $final_reshaped_fields;
+    }
+
+    private static function extract_reshaped_field_values( $field_key, $field_value, $intent, $pii_mappings = [], $multiple_options = [] ): array {
+
+        /**
+         * First, transform values and intents into arrays.
+         */
+
+        if ( !is_array( $field_value ) ) {
+            $field_value = [ $field_value ];
+        }
+
+        if ( !is_array( $intent ) ) {
+            $intent = [ $intent ];
+        }
+
+        /**
+         * Next, determine the field intentions in order to handle accordingly.
+         * The most recent intent case type will always take priority.
+         */
+
+        $status = '';
+        $prefix = '';
+        $loop_values = true;
+        foreach ( $intent as $intent_value ) {
+            switch ( $intent_value ) {
+                case 'NOT_SET':
+                    $loop_values = false;
+                    break;
+                case 'ANY':
+                    $prefix = $prefix . '*';
+                    break;
+                case 'EQUALS':
+                    break;
+                case 'NOT_EQUALS':
+                    $prefix = '-' . $prefix;
+                    break;
+                case 'STATUS_NEW':
+                case 'STATUS_ACTIVE':
+                case 'STATUS_INACTIVE':
+                case 'STATUS_NONE':
+                case 'STATUS_CLOSED':
+                case 'STATUS_UNASSIGNABLE':
+                case 'STATUS_UNASSIGNED':
+                case 'STATUS_ASSIGNED':
+                case 'STATUS_PAUSED':
+                    $status = $intent_value;
+                    break;
+                case 'DATES_BETWEEN':
+                case 'DATES_AFTER':
+                case 'DATES_BEFORE':
+                case 'DATES_PREVIOUS_YEARS':
+                case 'DATES_PREVIOUS_MONTHS':
+                case 'DATES_PREVIOUS_DAYS':
+                    $loop_values = false;
+                    // TODO: Extract date values accordingly in desired shape.
+                    break;
+            }
+        }
+
+        /**
+         * Next, if greenlight given, iterate over values and if required, un-obfuscate, before
+         * reshaping accordingly by intent.
+         */
+
+        $reshaped_values = [];
+        if ( $loop_values ) {
+            foreach ( $field_value as $obfuscated_value ) {
+
+                /**
+                 * First, search across multiple options; which should already contain system ids.
+                 * Failing that, then simply proceed with pii mapping or existing obfuscated value.
+                 */
+
+                $hit = null;
+                $extracted_option = self::extract_multiple_option_by_key_value( $multiple_options, 'pii_prompt', $obfuscated_value );
+                if ( !empty( $extracted_option ) && isset( $extracted_option['options'] ) && is_array( $extracted_option['options'] ) && ( count( $extracted_option['options'] ) > 0 ) && isset( $extracted_option['options'][0]['id'] ) ) {
+                    $hit = $extracted_option['options'][0]['id'];
+                } elseif ( isset( $pii_mappings[ $obfuscated_value ] ) ) {
+                    $hit = $pii_mappings[ $obfuscated_value ];
+                } else {
+                    $hit = $obfuscated_value;
+                }
+
+                /**
+                 * Next apply any relevant conditioning, based on intent.
+                 */
+
+                $reshaped_values[] = $prefix . $hit;
+            }
+        }
+
+        return [
+            'status' => $status,
+            'values' => $reshaped_values
+        ];
     }
 
     private static function simplified_convert_filter_fields_from_obfuscated_to_plain( $filter_fields, $pii_mappings, $multiple_options = [] ): array {

@@ -122,21 +122,27 @@ class Disciple_Tools_AI_Data {
     public function dt_ai_field_specs( $field_specs, $post_type ): array {
 
         /**
+         * Fetch list of fields associated with given post type and list
+         * keys.
+         */
+
+        $brief = [ 'The following field_keys are allowed:' ];
+        foreach ( DT_Posts::get_post_settings( $post_type )['fields'] ?? [] as $key => $field ) {
+            if ( in_array( $field['type'], [ 'boolean', 'communication_channel', 'connection', 'date', 'key_select', 'location', 'location_meta', 'multi_select', 'tags', 'text', 'user_select' ] ) ) {
+                if ( !isset( $field['private'] ) || !$field['private'] ) {
+                    $brief[] = $key;
+                }
+            }
+        }
+
+        /**
          * Load the various parts which will eventually be used
          * to construct the field generation model specification.
          */
 
         $fields_dir = __DIR__ . '/fields/';
 
-        $brief = $this->get_data( $fields_dir . '0-brief/brief.txt' );
         $instructions = $this->get_data( $fields_dir . '1-instructions/instructions.txt' );
-        $considerations = $this->get_data( $fields_dir . '2-considerations/considerations.txt' );
-
-        /**
-         * Create record post-type specification details for given post-type.
-         */
-
-        $post_type_specs = $this->generate_record_post_type_specs( $post_type );
 
         /**
          * The extraction of examples will require additional logic, to work into the desired shape.
@@ -157,9 +163,7 @@ class Disciple_Tools_AI_Data {
 
         $field_specs['fields'] = [
             'brief' => $brief,
-            'post_type_specs' => $post_type_specs,
             'instructions' => $instructions,
-            'considerations' => $considerations,
             'examples' => $examples
         ];
 

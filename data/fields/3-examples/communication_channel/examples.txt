@@ -1,6 +1,6 @@
-Show all records with 1234 in their phone number. ==//== {"fields": [{"contact_phone": ["1234"]}], "channels": ["1234"]}
-Show all contacts which do not contain test.com in their email. ==//== {"fields": [{"contact_email": ["-test.com"]}], "channels": ["test.com"]}
-Show all contacts which do not contain 2ofm09ds8404e6.tcc7t1 in their email. ==//== {"fields": [{"contact_email": ["-2ofm09ds8404e6.tcc7t1"]}], "channels": ["2ofm09ds8404e6.tcc7t1"]}
-Show any records with a facebook entry. ==//== {"fields": [{"contact_facebook": ["*"]}], "channels": []}
-Show records which have the phone numbers 320f05718045060165b50f--8 or ff67215242508 0690814 526. ==//== {"fields": [{"contact_phone": ["320f05718045060165b50f--8", "ff67215242508 0690814 526"]}], "channels": ["320f05718045060165b50f--8", "ff67215242508 0690814 526"]}
-Show all contacts with the following emails: ng1ob89cfei.080ob19fg76@ooml, l1g@gch.0broo187e8frog9604 or co8m.ob@06jc17gfb6s10lge8o9o ==//== {"fields": [{"contact_email": ["ng1ob89cfei.080ob19fg76@ooml", "l1g@gch.0broo187e8frog9604", "co8m.ob@06jc17gfb6s10lge8o9o"]}], "channels": ["ng1ob89cfei.080ob19fg76@ooml", "l1g@gch.0broo187e8frog9604", "co8m.ob@06jc17gfb6s10lge8o9o"]}
+Show all records with 1234 in their phone number. ==//== [{"field_key": "contact_phone", "field_value": "1234", "intent": "EQUALS" }]
+Show all contacts which do not contain test.com in their email. ==//== [{"field_key": "contact_email", "field_value": "test.com", "intent": "NOT_EQUALS" }]
+Show all contacts which do not contain 2ofm09ds8404e6.tcc7t1 in their email. ==//== [{"field_key": "contact_email", "field_value": "2ofm09ds8404e6.tcc7t1", "intent": "NOT_EQUALS" }]
+Show any records with a facebook entry. ==//== [{"field_key": "contact_facebook", "field_value": "", "intent": "ANY" }]
+Show records which have the phone numbers 320f05718045060165b50f--8 or ff67215242508 0690814 526. ==//== [{"field_key": "contact_phone", "field_value": ["320f05718045060165b50f--8", "ff67215242508 0690814 526"], "intent": "EQUALS" }]
+Show all contacts with the following emails: ng1ob89cfei.080ob19fg76@ooml, l1g@gch.0broo187e8frog9604 or co8m.ob@06jc17gfb6s10lge8o9o ==//== [{"field_key": "contact_email", "field_value": ["ng1ob89cfei.080ob19fg76@ooml", "l1g@gch.0broo187e8frog9604", "co8m.ob@06jc17gfb6s10lge8o9o"], "intent": "EQUALS" }]

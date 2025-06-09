@@ -1,77 +1,77 @@
-Display all records with no type set. ==//== {"fields": []}
-Show all records of type user. ==//== {"fields": [{"type": ["user"]}]}
-Show all records of type personal. ==//== {"fields": [{"type": ["personal"]}]}
-Show me all standard records. ==//== {"fields": [{"type": ["access"]}]}
-Display all connection type records. ==//== {"fields": [{"type": ["access_placeholder"]}]}
-Show all private connection types. ==//== {"fields": [{"type": ["placeholder"]}]}
+Display all records with no type set. ==//== [{"field_key": "type", "field_value": "", "intent": "NOT_SET" }]
+Show all records of type user. ==//== [{"field_key": "type", "field_value": "user", "intent": "EQUALS" }]
+Show all records of type personal. ==//== [{"field_key": "type", "field_value": "personal", "intent": "EQUALS" }]
+Show me all standard records. ==//== [{"field_key": "type", "field_value": "access", "intent": "EQUALS" }]
+Display all connection type records. ==//== [{"field_key": "type", "field_value": "access_placeholder", "intent": "EQUALS" }]
+Show all private connection types. ==//== [{"field_key": "type", "field_value": "placeholder", "intent": "EQUALS" }]
 
-Display all male records. ==//== {"fields": [{"gender": ["male"]}]}
-Show all female contacts. ==//== {"fields": [{"gender": ["female"]}]}
+Display all male records. ==//== [{"field_key": "gender", "field_value": "male", "intent": "EQUALS" }]
+Show all female contacts. ==//== [{"field_key": "gender", "field_value": "female", "intent": "EQUALS" }]
 
-Show all contacts with no ages set. ==//== {"fields": [{"age": ["none"]}]}
-Show records with no ages. ==//== {"fields": [{"age": ["not-set"]}]}
-Show records with ages under 18. ==//== {"fields": [{"age": ["<19"]}]}
-Show contacts with ages under 18 years old. ==//== {"fields": [{"age": ["<19"]}]}
-Show contacts under the age of 18. ==//== {"fields": [{"age": ["<19"]}]}
-Show contacts between the ages of 18 and 25 years old. ==//== {"fields": [{"age": ["<26"]}]}
-Show records with ages between 26 & 40 years old. ==//== {"fields": [{"age": ["<41"]}]}
-Show records with ages over 40 years old. ==//== {"fields": [{"age": [">41"]}]}
-Show all contacts older than 40. ==//== {"fields": [{"age": [">41"]}]}
+Show all contacts with no ages set. ==//== [{"field_key": "age", "field_value": "none", "intent": "EQUALS" }]
+Show records with no ages. ==//== [{"field_key": "age", "field_value": "not-set", "intent": "EQUALS" }]
+Show records with ages under 18. ==//== [{"field_key": "age", "field_value": "<19", "intent": "EQUALS" }]
+Show contacts with ages under 18 years old. ==//== [{"field_key": "age", "field_value": "<19", "intent": "EQUALS" }]
+Show contacts under the age of 18. ==//== [{"field_key": "age", "field_value": "<19", "intent": "EQUALS" }]
+Show contacts between the ages of 18 and 25 years old. ==//== [{"field_key": "age", "field_value": "<26", "intent": "EQUALS" }]
+Show records with ages between 26 & 40 years old. ==//== [{"field_key": "age", "field_value": "<41", "intent": "EQUALS" }]
+Show records with ages over 40 years old. ==//== [{"field_key": "age", "field_value": ">41", "intent": "EQUALS" }]
+Show all contacts older than 40. ==//== [{"field_key": "age", "field_value": ">41", "intent": "EQUALS" }]
 
-Show all records with no status set. ==//== {"fields": [{"overall_status": ["none"]}]}
-Show me all records with statuses of none set. ==//== {"fields": [{"overall_status": ["none"]}]}
-Show all new records. ==//== {"fields": [{"overall_status": ["new"]}]}
-Show all records which are not yet ready. ==//== {"fields": [{"overall_status": ["unassignable"]}]}
-Show all records with a status of not ready. ==//== {"fields": [{"overall_status": ["unassignable"]}]}
-Show records with a status of dispatch needed. ==//== {"fields": [{"overall_status": ["unassigned"]}]}
-Show records waiting to be accepted. ==//== {"fields": [{"overall_status": ["assigned"]}]}
-Show all active records. ==//== {"fields": [{"overall_status": ["active"]}]}
-Show all paused records. ==//== {"fields": [{"overall_status": ["paused"]}]}
-Show all archived records. ==//== {"fields": [{"overall_status": ["closed"]}]}
-Show all closed records. ==//== {"fields": [{"overall_status": ["closed"]}]}
+Show all records with no status set. ==//== [{"field_key": "overall_status", "field_value": "none", "intent": "EQUALS" }]
+Show me all records with statuses of none set. ==//== [{"field_key": "overall_status", "field_value": "none", "intent": "EQUALS" }]
+Show all new records. ==//== [{"field_key": "overall_status", "field_value": "new", "intent": "EQUALS" }]
+Show all records which are not yet ready. ==//== [{"field_key": "overall_status", "field_value": "unassignable", "intent": "EQUALS" }]
+Show all records with a status of not ready. ==//== [{"field_key": "overall_status", "field_value": "unassignable", "intent": "EQUALS" }]
+Show records with a status of dispatch needed. ==//== [{"field_key": "overall_status", "field_value": "unassigned", "intent": "EQUALS" }]
+Show records waiting to be accepted. ==//== [{"field_key": "overall_status", "field_value": "assigned", "intent": "EQUALS" }]
+Show all active records. ==//== [{"field_key": "overall_status", "field_value": "active", "intent": "EQUALS" }]
+Show all paused records. ==//== [{"field_key": "overall_status", "field_value": "paused", "intent": "EQUALS" }]
+Show all archived records. ==//== [{"field_key": "overall_status", "field_value": "closed", "intent": "EQUALS" }]
+Show all closed records. ==//== [{"field_key": "overall_status", "field_value": "closed", "intent": "EQUALS" }]
 
-Show all seekers. ==//== {"fields": [{"faith_status": ["seeker"]}]}
-Display all contacts who are believers. ==//== {"fields": [{"faith_status": ["believer"]}]}
-Show all leaders. ==//== {"fields": [{"faith_status": ["leader"]}]}
+Show all seekers. ==//== [{"field_key": "faith_status", "field_value": "seeker", "intent": "EQUALS" }]
+Display all contacts who are believers. ==//== [{"field_key": "faith_status", "field_value": "believer", "intent": "EQUALS" }]
+Show all leaders. ==//== [{"field_key": "faith_status", "field_value": "leader", "intent": "EQUALS" }]
 
-Show all records where contact attempt is still needed ==//== {"fields": [{"seeker_path": ["none"]}]}
-Display records where contact has been attempted ==//== {"fields": [{"seeker_path": ["attempted"]}]}
-Display records where contact has been established ==//== {"fields": [{"seeker_path": ["established"]}]}
-Show records where first meeting has been scheduled ==//== {"fields": [{"seeker_path": ["scheduled"]}]}
-Show contacts who have completed their first meeting ==//== {"fields": [{"seeker_path": ["met"]}]}
-Show contacts having ongoing meetings ==//== {"fields": [{"seeker_path": ["ongoing"]}]}
-Show contacts being coached ==//== {"fields": [{"seeker_path": ["coaching"]}]}
+Show all records where contact attempt is still needed ==//== [{"field_key": "seeker_path", "field_value": "none", "intent": "EQUALS" }]
+Display records where contact has been attempted ==//== [{"field_key": "seeker_path", "field_value": "attempted", "intent": "EQUALS" }]
+Display records where contact has been established ==//== [{"field_key": "seeker_path", "field_value": "established", "intent": "EQUALS" }]
+Show records where first meeting has been scheduled ==//== [{"field_key": "seeker_path", "field_value": "scheduled", "intent": "EQUALS" }]
+Show contacts who have completed their first meeting ==//== [{"field_key": "seeker_path", "field_value": "met", "intent": "EQUALS" }]
+Show contacts having ongoing meetings ==//== [{"field_key": "seeker_path", "field_value": "ongoing", "intent": "EQUALS" }]
+Show contacts being coached ==//== [{"field_key": "seeker_path", "field_value": "coaching", "intent": "EQUALS" }]
 
-Show all contacts with no valid reason for not being ready. ==//== {"fields": [{"reason_unassignable": ["none"]}]}
-Show all contacts with insufficient information. ==//== {"fields": [{"reason_unassignable": ["insufficient"]}]}
-Display contacts with unknown locations. ==//== {"fields": [{"reason_unassignable": ["location"]}]}
-Display contacts who only want media. ==//== {"fields": [{"reason_unassignable": ["media"]}]}
-Show contacts who are from an outside area. ==//== {"fields": [{"reason_unassignable": ["outside_area"]}]}
-Show contacts who need review. ==//== {"fields": [{"reason_unassignable": ["needs_review"]}]}
-Display contacts waiting for confirmation. ==//== {"fields": [{"reason_unassignable": ["awaiting_confirmation"]}]}
+Show all contacts with no valid reason for not being ready. ==//== [{"field_key": "reason_unassignable", "field_value": "none", "intent": "EQUALS" }]
+Show all contacts with insufficient information. ==//== [{"field_key": "reason_unassignable", "field_value": "insufficient", "intent": "EQUALS" }]
+Display contacts with unknown locations. ==//== [{"field_key": "reason_unassignable", "field_value": "location", "intent": "EQUALS" }]
+Display contacts who only want media. ==//== [{"field_key": "reason_unassignable", "field_value": "media", "intent": "EQUALS" }]
+Show contacts who are from an outside area. ==//== [{"field_key": "reason_unassignable", "field_value": "outside_area", "intent": "EQUALS" }]
+Show contacts who need review. ==//== [{"field_key": "reason_unassignable", "field_value": "needs_review", "intent": "EQUALS" }]
+Display contacts waiting for confirmation. ==//== [{"field_key": "reason_unassignable", "field_value": "awaiting_confirmation", "intent": "EQUALS" }]
 
-Show contacts with no reason for pause. ==//== {"fields": [{"reason_paused": ["none"]}]}
-Show contacts on vacation. ==//== {"fields": [{"reason_paused": ["vacation"]}]}
-Show contacts not responding. ==//== {"fields": [{"reason_paused": ["not_responding"]}]}
-Show contacts not available. ==//== {"fields": [{"reason_paused": ["not_available"]}]}
-Show contacts with little interest. ==//== {"fields": [{"reason_paused": ["little_interest"]}]}
-Display contacts showing no initiative. ==//== {"fields": [{"reason_paused": ["no_initiative"]}]}
-Display contacts with questionable motives. ==//== {"fields": [{"reason_paused": ["questionable_motives"]}]}
-Display contacts with the ball in their court. ==//== {"fields": [{"reason_paused": ["ball_in_their_court"]}]}
-Display contacts we are waiting to see how they respond. ==//== {"fields": [{"reason_paused": ["wait_and_see"]}]}
+Show contacts with no reason for pause. ==//== [{"field_key": "reason_paused", "field_value": "none", "intent": "EQUALS" }]
+Show contacts on vacation. ==//== [{"field_key": "reason_paused", "field_value": "vacation", "intent": "EQUALS" }]
+Show contacts not responding. ==//== [{"field_key": "reason_paused", "field_value": "not_responding", "intent": "EQUALS" }]
+Show contacts not available. ==//== [{"field_key": "reason_paused", "field_value": "not_available", "intent": "EQUALS" }]
+Show contacts with little interest. ==//== [{"field_key": "reason_paused", "field_value": "little_interest", "intent": "EQUALS" }]
+Display contacts showing no initiative. ==//== [{"field_key": "reason_paused", "field_value": "no_initiative", "intent": "EQUALS" }]
+Display contacts with questionable motives. ==//== [{"field_key": "reason_paused", "field_value": "questionable_motives", "intent": "EQUALS" }]
+Display contacts with the ball in their court. ==//== [{"field_key": "reason_paused", "field_value": "ball_in_their_court", "intent": "EQUALS" }]
+Display contacts we are waiting to see how they respond. ==//== [{"field_key": "reason_paused", "field_value": "wait_and_see", "intent": "EQUALS" }]
 
-Show contacts with no reason for archive. ==//== {"fields": [{"reason_closed": ["none"]}]}
-Show contacts with duplication as the reason for closer. ==//== {"fields": [{"reason_closed": ["duplicate"]}]}
-Show records with insufficient contact info as the reason for closer. ==//== {"fields": [{"reason_closed": ["insufficient"]}]}
-Show records who deny submitting contact request. ==//== {"fields": [{"reason_closed": ["denies_submission"]}]}
-Show archived records with hostile as the reason for closure. ==//== {"fields": [{"reason_closed": ["hostile_self_gain"]}]}
-Show archived records with arguing or debating as the reason for closure. ==//== {"fields": [{"reason_closed": ["apologetics"]}]}
-Show closed records who just wanted media. ==//== {"fields": [{"reason_closed": ["media_only"]}]}
-Display closed records who are no longer interested. ==//== {"fields": [{"reason_closed": ["no_longer_interested"]}]}
-Display closed records who are no longer responding. ==//== {"fields": [{"reason_closed": ["no_longer_responding"]}]}
-Display closed records who are already connected with a church. ==//== {"fields": [{"reason_closed": ["already_connected"]}]}
-Display closed records transferred to partner. ==//== {"fields": [{"reason_closed": ["transfer"]}]}
-Display closed contacts which were martyred. ==//== {"fields": [{"reason_closed": ["martyred"]}]}
-Show closed contacts which have moved. ==//== {"fields": [{"reason_closed": ["moved"]}]}
-Show closed contacts resulting from a gdpr request. ==//== {"fields": [{"reason_closed": ["gdpr"]}]}
-Display records closed for unknown reasons. ==//== {"fields": [{"reason_closed": ["unknown"]}]}
+Show contacts with no reason for archive. ==//== [{"field_key": "reason_closed", "field_value": "none", "intent": "EQUALS" }]
+Show contacts with duplication as the reason for closer. ==//== [{"field_key": "reason_closed", "field_value": "duplicate", "intent": "EQUALS" }]
+Show records with insufficient contact info as the reason for closer. ==//== [{"field_key": "reason_closed", "field_value": "insufficient", "intent": "EQUALS" }]
+Show records who deny submitting contact request. ==//== [{"field_key": "reason_closed", "field_value": "denies_submission", "intent": "EQUALS" }]
+Show archived records with hostile as the reason for closure. ==//== [{"field_key": "reason_closed", "field_value": "hostile_self_gain", "intent": "EQUALS" }]
+Show archived records with arguing or debating as the reason for closure. ==//== [{"field_key": "reason_closed", "field_value": "apologetics", "intent": "EQUALS" }]
+Show closed records who just wanted media. ==//== [{"field_key": "reason_closed", "field_value": "media_only", "intent": "EQUALS" }]
+Display closed records who are no longer interested. ==//== [{"field_key": "reason_closed", "field_value": "no_longer_interested", "intent": "EQUALS" }]
+Display closed records who are no longer responding. ==//== [{"field_key": "reason_closed", "field_value": "no_longer_responding", "intent": "EQUALS" }]
+Display closed records who are already connected with a church. ==//== [{"field_key": "reason_closed", "field_value": "already_connected", "intent": "EQUALS" }]
+Display closed records transferred to partner. ==//== [{"field_key": "reason_closed", "field_value": "transfer", "intent": "EQUALS" }]
+Display closed contacts which were martyred. ==//== [{"field_key": "reason_closed", "field_value": "martyred", "intent": "EQUALS" }]
+Show closed contacts which have moved. ==//== [{"field_key": "reason_closed", "field_value": "moved", "intent": "EQUALS" }]
+Show closed contacts resulting from a gdpr request. ==//== [{"field_key": "reason_closed", "field_value": "gdpr", "intent": "EQUALS" }]
+Display records closed for unknown reasons. ==//== [{"field_key": "reason_closed", "field_value": "unknown", "intent": "EQUALS" }]

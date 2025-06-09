@@ -1,3 +1,0 @@
-Show me all contacts based in @[####](100074576). ==//== {"fields": [{"location_grid": ["100074576"]}]}
-List all contacts in @[####](100380048) ==//== {"fields": [{"location_grid": ["100380048"]}]}
-Show all contacts in @[####](100241761) or @[####](100131318) ==//== {"fields": [{"location_grid": ["100241761","100131318"]}]}
