@@ -665,7 +665,7 @@ class Disciple_Tools_AI_Tile
                      * list refresh.
                      */
 
-                    if (filter?.fields && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
+                    if (filter && window.SHAREDFUNCTIONS?.add_custom_filter && window.SHAREDFUNCTIONS?.reset_split_by_filters) {
 
                         /**
                          * First, attempt to identify labels to be used based on returned
@@ -673,14 +673,14 @@ class Disciple_Tools_AI_Tile
                          */
 
                         let labels = [];
-                        if (Array.isArray(filter.fields) && window.SHAREDFUNCTIONS?.create_name_value_label) {
-                            filter.fields.forEach((field) => {
+                        if (Array.isArray(filter) && window.SHAREDFUNCTIONS?.create_name_value_label) {
+                            filter.forEach((field) => {
                                 for (const [key, filters] of Object.entries(field)) {
 
                                     if (key && Array.isArray(filters)) {
-                                        filters.forEach((filter) => {
+                                        filters.forEach((value) => {
 
-                                            const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, filter, isNaN(filter) ? filter : '', window?.list_settings);
+                                            const {newLabel} = window.SHAREDFUNCTIONS?.create_name_value_label(key, value, isNaN(value) ? value : '', window?.list_settings);
                                             if (newLabel) {
                                                 labels.push(newLabel);
                                             }
@@ -695,7 +695,8 @@ class Disciple_Tools_AI_Tile
                          * Determine status field to be appended to filter fields.
                          */
 
-                        if ( window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
+                        const status_detected = Array.isArray(filter) && filter.filter((field) => !!field[settings.settings.status_field.status_key]).length > 0;
+                        if ( !status_detected && window.SHAREDFUNCTIONS.get_json_from_local_storage && settings.settings?.status_field?.status_key && settings.settings?.status_field?.archived_key ) {
 
                             // Determine if archived records are to be shown.
                             const show_archived_records = window.SHAREDFUNCTIONS.get_json_from_local_storage(
@@ -709,8 +710,8 @@ class Disciple_Tools_AI_Tile
                             status[settings.settings.status_field.status_key] = [ `${show_archived_records ? '' : '-'}${settings.settings.status_field.archived_key}` ];
 
                             // Finally append to filter fields.
-                            if ( Array.isArray( filter.fields ) ) {
-                                filter.fields.push( status );
+                            if ( Array.isArray( filter ) ) {
+                                filter.push( status );
                             }
                         }
 
@@ -723,7 +724,7 @@ class Disciple_Tools_AI_Tile
                             settings.translations['custom_filter'],
                             'custom-filter',
                             {
-                                fields: filter.fields
+                                fields: filter
                             },
                             labels
                         );
