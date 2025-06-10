@@ -869,11 +869,11 @@ class Disciple_Tools_AI_API {
         $field_settings = DT_Posts::get_post_field_settings( $post_type );
         foreach ( $fields ?? [] as $field ) {
             if ( isset( $field['field_value'], $field_settings[ $field['field_key'] ] ) ) {
-                if ( in_array( $field_settings[ $field['field_key'] ]['type'], ['location', 'location_meta'] ) ) {
+                if ( in_array( $field_settings[ $field['field_key'] ]['type'], [ 'location', 'location_meta' ] ) ) {
                     $connections['locations'][] = $field['field_value'];
                 }
 
-                if ( in_array( $field_settings[ $field['field_key'] ]['type'], ['user_select'] ) ) {
+                if ( in_array( $field_settings[ $field['field_key'] ]['type'], [ 'user_select' ] ) ) {
                     $connections['connections'][] = $field['field_value'];
                 }
             }
