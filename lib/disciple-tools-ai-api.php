@@ -637,78 +637,78 @@ class Disciple_Tools_AI_API {
         );
 
         // Filter out date patterns before obfuscation
-        $pii = array_filter($pii, function($item) {
-            $item = trim($item);
+        $pii = array_filter( $pii, function( $item ) {
+            $item = trim( $item );
 
             // 4-digit years (YYYY)
-            if (preg_match('/^\d{4}$/', $item)) {
+            if ( preg_match( '/^\d{4}$/', $item ) ) {
                 return false;
             }
 
             // ISO date format (YYYY-MM-DD)
-            if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $item)) {
+            if ( preg_match( '/^\d{4}-\d{1,2}-\d{1,2}$/', $item ) ) {
                 return false;
             }
 
             // US format (MM/DD/YYYY, MM/DD/YY)
-            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{2,4}$/', $item)) {
+            if ( preg_match( '/^\d{1,2}\/\d{1,2}\/\d{2,4}$/', $item ) ) {
                 return false;
             }
 
             // European format (DD/MM/YYYY, DD/MM/YY)
-            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{2,4}$/', $item)) {
+            if ( preg_match( '/^\d{1,2}\/\d{1,2}\/\d{2,4}$/', $item ) ) {
                 return false; // Note: Same regex as US format - ambiguous without context
             }
 
             // Dash separated dates (MM-DD-YYYY, DD-MM-YYYY, MM-DD-YY, DD-MM-YY)
-            if (preg_match('/^\d{1,2}-\d{1,2}-\d{2,4}$/', $item)) {
+            if ( preg_match( '/^\d{1,2}-\d{1,2}-\d{2,4}$/', $item ) ) {
                 return false;
             }
 
             // Dot separated dates (YYYY.MM.DD, DD.MM.YYYY, MM.DD.YYYY)
-            if (preg_match('/^\d{1,4}\.\d{1,2}\.\d{1,4}$/', $item)) {
+            if ( preg_match( '/^\d{1,4}\.\d{1,2}\.\d{1,4}$/', $item ) ) {
                 return false;
             }
 
             // Alternative ISO formats (YYYY/MM/DD)
-            if (preg_match('/^\d{4}\/\d{1,2}\/\d{1,2}$/', $item)) {
+            if ( preg_match( '/^\d{4}\/\d{1,2}\/\d{1,2}$/', $item ) ) {
                 return false;
             }
 
             // Month names with dates (January 15, 2025 | Jan 15, 2025 | 15 January 2025 | 15 Jan 2025)
             $months = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
-            if (preg_match('/^(' . $months . ')\s+\d{1,2},?\s+\d{2,4}$/i', $item)) {
+            if ( preg_match( '/^(' . $months . ')\s+\d{1,2},?\s+\d{2,4}$/i', $item ) ) {
                 return false;
             }
-            if (preg_match('/^\d{1,2}\s+(' . $months . ')\s+\d{2,4}$/i', $item)) {
+            if ( preg_match( '/^\d{1,2}\s+(' . $months . ')\s+\d{2,4}$/i', $item ) ) {
                 return false;
             }
 
             // Time stamps (YYYY-MM-DD HH:MM:SS, YYYY-MM-DD HH:MM)
-            if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}(:\d{2})?$/', $item)) {
+            if ( preg_match( '/^\d{4}-\d{1,2}-\d{1,2}\s+\d{1,2}:\d{2}(:\d{2})?$/', $item ) ) {
                 return false;
             }
 
             // ISO 8601 format with T (YYYY-MM-DDTHH:MM:SS)
-            if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}(:\d{2})?(\.\d{3})?Z?$/', $item)) {
+            if ( preg_match( '/^\d{4}-\d{1,2}-\d{1,2}T\d{1,2}:\d{2}(:\d{2})?(\.\d{3})?Z?$/', $item ) ) {
                 return false;
             }
 
             // Relative dates that might be picked up (Today, Yesterday, Tomorrow)
-            $relative_dates = ['today', 'yesterday', 'tomorrow', 'now'];
-            if (in_array(strtolower($item), $relative_dates)) {
+            $relative_dates = [ 'today', 'yesterday', 'tomorrow', 'now' ];
+            if ( in_array( strtolower( $item ), $relative_dates ) ) {
                 return false;
             }
 
             // Week days that might be picked up
-            $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-            if (in_array(strtolower($item), $weekdays)) {
+            $weekdays = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun' ];
+            if ( in_array( strtolower( $item ), $weekdays ) ) {
                 return false;
             }
 
             // Month names alone
-            $month_names = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-            if (in_array(strtolower($item), $month_names)) {
+            $month_names = [ 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec' ];
+            if ( in_array( strtolower( $item ), $month_names ) ) {
                 return false;
             }
 
@@ -1828,9 +1828,9 @@ class Disciple_Tools_AI_API {
                     $loop_values = false;
                     // Parse date values and convert to YYYY-MM-DD format
                     $parsed_dates = [];
-                    foreach ($field_value as $date_value) {
-                        $parsed_date = self::parse_date_to_standard_format($date_value);
-                        if ($parsed_date !== false) {
+                    foreach ( $field_value as $date_value ) {
+                        $parsed_date = self::parse_date_to_standard_format( $date_value );
+                        if ( $parsed_date !== false ) {
                             $parsed_dates[] = $parsed_date;
                         }
                     }
@@ -1850,7 +1850,7 @@ class Disciple_Tools_AI_API {
                         } else {
                             $reshaped_values = [
                                 'start' => $parsed_dates[0],
-                                'end' => date('Y-m-d', time())
+                                'end' => gmdate( 'Y-m-d', time() )
                             ];
                         }
                     }
@@ -1858,13 +1858,13 @@ class Disciple_Tools_AI_API {
                     if ( in_array( $intent_value, [ 'DATES_AFTER', 'DATES_PREVIOUS_YEARS', 'DATES_PREVIOUS_MONTHS', 'DATES_PREVIOUS_DAYS' ] ) ) {
                         $reshaped_values = [
                             'start' => $parsed_dates[0],
-                            'end' => date('Y-m-d', time())
+                            'end' => gmdate( 'Y-m-d', time() )
                         ];
                     }
 
                     if ( in_array( $intent_value, [ 'DATES_BEFORE' ] ) ) {
                         $reshaped_values = [
-                            'start' => date('Y-m-d', 0),
+                            'start' => gmdate( 'Y-m-d', 0 ),
                             'end' => $parsed_dates[0]
                         ];
                     }
@@ -2038,238 +2038,306 @@ class Disciple_Tools_AI_API {
         return $modules[ $module_id ][ $module_property ] === $module_value;
     }
 
-    private static function parse_date_to_standard_format($date_string) {
-        $date_string = trim($date_string);
+    private static function parse_date_to_standard_format( $date_string ) {
+        $date_string = trim( $date_string );
 
         // Handle empty strings
-        if (empty($date_string)) {
+        if ( empty( $date_string ) ) {
             return false;
         }
 
         try {
             // First, try to handle relative/temporal expressions
-            $timestamp = self::parse_temporal_expression($date_string);
-            if ($timestamp !== false) {
-                return date('Y-m-d', $timestamp);
+            $timestamp = self::parse_temporal_expression( $date_string );
+            if ( $timestamp !== false ) {
+                return date( 'Y-m-d', $timestamp );
             }
 
             // Handle standard date formats
-            $timestamp = self::parse_standard_date_formats($date_string);
-            if ($timestamp !== false) {
-                return date('Y-m-d', $timestamp);
+            $timestamp = self::parse_standard_date_formats( $date_string );
+            if ( $timestamp !== false ) {
+                return date( 'Y-m-d', $timestamp );
             }
 
             // Fallback to PHP's strtotime
-            $timestamp = strtotime($date_string);
-            if ($timestamp !== false) {
-                return date('Y-m-d', $timestamp);
+            $timestamp = strtotime( $date_string );
+            if ( $timestamp !== false ) {
+                return date( 'Y-m-d', $timestamp );
             }
 
-        } catch (Exception $e) {
-            dt_write_log('Date parsing error: ' . $e->getMessage());
+        } catch ( Exception $e ) {
+            dt_write_log( 'Date parsing error: ' . $e->getMessage() );
         }
 
         return false;
     }
 
-    private static function parse_temporal_expression($date_string) {
-        $date_string = strtolower(trim($date_string));
+    private static function parse_temporal_expression( $date_string ) {
+        $date_string = strtolower( trim( $date_string ) );
         $now = time();
 
         // Handle relative days
-        if ($date_string === 'today') {
-            return strtotime('today');
+        if ( $date_string === 'today' ) {
+            return strtotime( 'today' );
         }
-        if ($date_string === 'yesterday') {
-            return strtotime('yesterday');
+        if ( $date_string === 'yesterday' ) {
+            return strtotime( 'yesterday' );
         }
-        if ($date_string === 'tomorrow') {
-            return strtotime('tomorrow');
+        if ( $date_string === 'tomorrow' ) {
+            return strtotime( 'tomorrow' );
         }
 
         // Handle "X days ago" or "last X days"
-        if (preg_match('/^(\d+)\s+days?\s+ago$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} days");
+        if ( preg_match( '/^(\d+)\s+days?\s+ago$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} days" );
         }
-        if (preg_match('/^last\s+(\d+)\s+days?$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} days");
+        if ( preg_match( '/^last\s+(\d+)\s+days?$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} days" );
         }
 
         // Handle "X weeks ago" or "last X weeks"
-        if (preg_match('/^(\d+)\s+weeks?\s+ago$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} weeks");
+        if ( preg_match( '/^(\d+)\s+weeks?\s+ago$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} weeks" );
         }
-        if (preg_match('/^last\s+(\d+)\s+weeks?$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} weeks");
+        if ( preg_match( '/^last\s+(\d+)\s+weeks?$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} weeks" );
         }
 
         // Handle "X months ago" or "last X months"
-        if (preg_match('/^(\d+)\s+months?\s+ago$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} months");
+        if ( preg_match( '/^(\d+)\s+months?\s+ago$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} months" );
         }
-        if (preg_match('/^last\s+(\d+)\s+months?$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} months");
+        if ( preg_match( '/^last\s+(\d+)\s+months?$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} months" );
         }
 
         // Handle "X years ago" or "last X years"
-        if (preg_match('/^(\d+)\s+years?\s+ago$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} years");
+        if ( preg_match( '/^(\d+)\s+years?\s+ago$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} years" );
         }
-        if (preg_match('/^last\s+(\d+)\s+years?$/i', $date_string, $matches)) {
-            return strtotime("-{$matches[1]} years");
+        if ( preg_match( '/^last\s+(\d+)\s+years?$/i', $date_string, $matches ) ) {
+            return strtotime( "-{$matches[1]} years" );
         }
 
         // Handle weekdays with modifiers
-        $weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-        foreach ($weekdays as $day) {
-            if (preg_match('/^last\s+' . $day . '$/i', $date_string)) {
-                return strtotime("last {$day}");
+        $weekdays = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
+        foreach ( $weekdays as $day ) {
+            if ( preg_match( '/^last\s+' . $day . '$/i', $date_string ) ) {
+                return strtotime( "last {$day}" );
             }
-            if (preg_match('/^this\s+' . $day . '$/i', $date_string)) {
-                return strtotime("this {$day}");
+            if ( preg_match( '/^this\s+' . $day . '$/i', $date_string ) ) {
+                return strtotime( "this {$day}" );
             }
-            if (preg_match('/^next\s+' . $day . '$/i', $date_string)) {
-                return strtotime("next {$day}");
+            if ( preg_match( '/^next\s+' . $day . '$/i', $date_string ) ) {
+                return strtotime( "next {$day}" );
             }
         }
 
         // Handle quarters
-        if (preg_match('/^q([1-4])\s+(\d{4})$/i', $date_string, $matches)) {
-            $quarter = intval($matches[1]);
-            $year = intval($matches[2]);
-            $month = ($quarter - 1) * 3 + 1; // Q1=1, Q2=4, Q3=7, Q4=10
-            return mktime(0, 0, 0, $month, 1, $year);
+        if ( preg_match( '/^q([1-4])\s+(\d{4})$/i', $date_string, $matches ) ) {
+            $quarter = intval( $matches[1] );
+            $year = intval( $matches[2] );
+            $month = ( $quarter - 1 ) * 3 + 1; // Q1=1, Q2=4, Q3=7, Q4=10
+            return mktime( 0, 0, 0, $month, 1, $year );
         }
 
         // Handle "first quarter of YYYY", "second quarter of YYYY", etc.
-        if (preg_match('/^(first|second|third|fourth)\s+quarter\s+of\s+(\d{4})$/i', $date_string, $matches)) {
-            $quarter_map = ['first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4];
-            $quarter = $quarter_map[strtolower($matches[1])];
-            $year = intval($matches[2]);
-            $month = ($quarter - 1) * 3 + 1;
-            return mktime(0, 0, 0, $month, 1, $year);
+        if ( preg_match( '/^(first|second|third|fourth)\s+quarter\s+of\s+(\d{4})$/i', $date_string, $matches ) ) {
+            $quarter_map = [ 'first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4 ];
+            $quarter = $quarter_map[ strtolower( $matches[1] ) ];
+            $year = intval( $matches[2] );
+            $month = ( $quarter - 1 ) * 3 + 1;
+            return mktime( 0, 0, 0, $month, 1, $year );
         }
 
         // Handle month and year only (e.g., "March 2025", "Mar 2025")
-        $months_full = ['january', 'february', 'march', 'april', 'may', 'june',
-                       'july', 'august', 'september', 'october', 'november', 'december'];
-        $months_abbr = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-                       'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+        $months_full = [
+            'january',
+            'february',
+            'march',
+            'april',
+            'may',
+            'june',
+            'july',
+            'august',
+            'september',
+            'october',
+            'november',
+            'december'
+        ];
+        $months_abbr = [
+            'jan',
+            'feb',
+            'mar',
+            'apr',
+            'may',
+            'jun',
+            'jul',
+            'aug',
+            'sep',
+            'oct',
+            'nov',
+            'dec'
+        ];
 
-        foreach ($months_full as $index => $month) {
-            if (preg_match('/^' . $month . '\s+(\d{4})$/i', $date_string, $matches)) {
-                return mktime(0, 0, 0, $index + 1, 1, intval($matches[1]));
+        foreach ( $months_full as $index => $month ) {
+            if ( preg_match( '/^' . $month . '\s+(\d{4})$/i', $date_string, $matches ) ) {
+                return mktime( 0, 0, 0, $index + 1, 1, intval( $matches[1] ) );
             }
         }
 
-        foreach ($months_abbr as $index => $month) {
-            if (preg_match('/^' . $month . '\s+(\d{4})$/i', $date_string, $matches)) {
-                return mktime(0, 0, 0, $index + 1, 1, intval($matches[1]));
+        foreach ( $months_abbr as $index => $month ) {
+            if ( preg_match( '/^' . $month . '\s+(\d{4})$/i', $date_string, $matches ) ) {
+                return mktime( 0, 0, 0, $index + 1, 1, intval( $matches[1] ) );
             }
         }
 
         return false;
     }
 
-    private static function parse_standard_date_formats($date_string) {
+    private static function parse_standard_date_formats( $date_string ) {
         // ISO format: YYYY-MM-DD
-        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $date_string, $matches)) {
-            return mktime(0, 0, 0, intval($matches[2]), intval($matches[3]), intval($matches[1]));
+        if ( preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $date_string, $matches ) ) {
+            return mktime( 0, 0, 0, intval( $matches[2] ), intval( $matches[3] ), intval( $matches[1] ) );
         }
 
         // US format: MM/DD/YYYY or MM/DD/YY
-        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/', $date_string, $matches)) {
-            $year = intval($matches[3]);
-            if ($year < 50) $year += 2000; // Assume 2000s for years 00-49
-            elseif ($year < 100) $year += 1900; // Assume 1900s for years 50-99
-            return mktime(0, 0, 0, intval($matches[1]), intval($matches[2]), $year);
+        if ( preg_match( '/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/', $date_string, $matches ) ) {
+            $year = intval( $matches[3] );
+            if ( $year < 50 ) {
+                $year += 2000;
+            } // Assume 2000s for years 00-49
+            elseif ( $year < 100 ) {
+                $year += 1900;
+            } // Assume 1900s for years 50-99
+            return mktime( 0, 0, 0, intval( $matches[1] ), intval( $matches[2] ), $year );
         }
 
         // European format: DD/MM/YYYY or DD/MM/YY (assuming context suggests European)
-        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/', $date_string, $matches)) {
-            $year = intval($matches[3]);
-            if ($year < 50) $year += 2000;
-            elseif ($year < 100) $year += 1900;
+        if ( preg_match( '/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/', $date_string, $matches ) ) {
+            $year = intval( $matches[3] );
+            if ( $year < 50 ) {
+                $year += 2000;
+            }
+            elseif ( $year < 100 ) {
+                $year += 1900;
+            }
             // Try European format if US format seems unlikely (day > 12)
-            if (intval($matches[1]) > 12) {
-                return mktime(0, 0, 0, intval($matches[2]), intval($matches[1]), $year);
+            if ( intval( $matches[1] ) > 12 ) {
+                return mktime( 0, 0, 0, intval( $matches[2] ), intval( $matches[1] ), $year );
             }
         }
 
         // Dash format: MM-DD-YYYY, DD-MM-YYYY, etc.
-        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', $date_string, $matches)) {
-            $year = intval($matches[3]);
-            if ($year < 50) $year += 2000;
-            elseif ($year < 100) $year += 1900;
+        if ( preg_match( '/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/', $date_string, $matches ) ) {
+            $year = intval( $matches[3] );
+            if ( $year < 50 ) {
+                $year += 2000;
+            }
+            elseif ( $year < 100 ) {
+                $year += 1900;
+            }
 
             // Try to determine if it's MM-DD-YYYY or DD-MM-YYYY
-            if (intval($matches[1]) > 12) {
+            if ( intval( $matches[1] ) > 12 ) {
                 // First number > 12, so it must be DD-MM-YYYY
-                return mktime(0, 0, 0, intval($matches[2]), intval($matches[1]), $year);
+                return mktime( 0, 0, 0, intval( $matches[2] ), intval( $matches[1] ), $year );
             } else {
                 // Assume MM-DD-YYYY
-                return mktime(0, 0, 0, intval($matches[1]), intval($matches[2]), $year);
+                return mktime( 0, 0, 0, intval( $matches[1] ), intval( $matches[2] ), $year );
             }
         }
 
         // Dot format: YYYY.MM.DD, DD.MM.YYYY, MM.DD.YYYY
-        if (preg_match('/^(\d{1,4})\.(\d{1,2})\.(\d{1,4})$/', $date_string, $matches)) {
-            if (intval($matches[1]) > 31) {
+        if ( preg_match( '/^(\d{1,4})\.(\d{1,2})\.(\d{1,4})$/', $date_string, $matches ) ) {
+            if ( intval( $matches[1] ) > 31 ) {
                 // YYYY.MM.DD
-                return mktime(0, 0, 0, intval($matches[2]), intval($matches[3]), intval($matches[1]));
-            } elseif (intval($matches[3]) > 31) {
+                return mktime( 0, 0, 0, intval( $matches[2] ), intval( $matches[3] ), intval( $matches[1] ) );
+            } elseif ( intval( $matches[3] ) > 31 ) {
                 // DD.MM.YYYY or MM.DD.YYYY
-                if (intval($matches[1]) > 12) {
+                if ( intval( $matches[1] ) > 12 ) {
                     // DD.MM.YYYY
-                    return mktime(0, 0, 0, intval($matches[2]), intval($matches[1]), intval($matches[3]));
+                    return mktime( 0, 0, 0, intval( $matches[2] ), intval( $matches[1] ), intval( $matches[3] ) );
                 } else {
                     // MM.DD.YYYY
-                    return mktime(0, 0, 0, intval($matches[1]), intval($matches[2]), intval($matches[3]));
+                    return mktime( 0, 0, 0, intval( $matches[1] ), intval( $matches[2] ), intval( $matches[3] ) );
                 }
             }
         }
 
         // Text formats: "March 1, 2025", "1 March 2025", "Mar 1, 2025", "1 Mar 2025"
         $months = [
-            'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4, 'may' => 5, 'june' => 6,
-            'july' => 7, 'august' => 8, 'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12,
-            'jan' => 1, 'feb' => 2, 'mar' => 3, 'apr' => 4, 'may' => 5, 'jun' => 6,
-            'jul' => 7, 'aug' => 8, 'sep' => 9, 'oct' => 10, 'nov' => 11, 'dec' => 12
+            'january' => 1,
+            'february' => 2,
+            'march' => 3,
+            'april' => 4,
+            'may' => 5,
+            'june' => 6,
+            'july' => 7,
+            'august' => 8,
+            'september' => 9,
+            'october' => 10,
+            'november' => 11,
+            'december' => 12,
+            'jan' => 1,
+            'feb' => 2,
+            'mar' => 3,
+            'apr' => 4,
+            'may' => 5,
+            'jun' => 6,
+            'jul' => 7,
+            'aug' => 8,
+            'sep' => 9,
+            'oct' => 10,
+            'nov' => 11,
+            'dec' => 12
         ];
 
         // "March 1, 2025" or "Mar 1, 2025"
-        foreach ($months as $month_name => $month_num) {
-            if (preg_match('/^' . $month_name . '\s+(\d{1,2}),?\s+(\d{2,4})$/i', $date_string, $matches)) {
-                $year = intval($matches[2]);
-                if ($year < 50) $year += 2000;
-                elseif ($year < 100) $year += 1900;
-                return mktime(0, 0, 0, $month_num, intval($matches[1]), $year);
+        foreach ( $months as $month_name => $month_num ) {
+            if ( preg_match( '/^' . $month_name . '\s+(\d{1,2}),?\s+(\d{2,4})$/i', $date_string, $matches ) ) {
+                $year = intval( $matches[2] );
+                if ( $year < 50 ) {
+                    $year += 2000;
+                }
+                elseif ( $year < 100 ) {
+                    $year += 1900;
+                }
+                return mktime( 0, 0, 0, $month_num, intval( $matches[1] ), $year );
             }
         }
 
         // "1 March 2025" or "1 Mar 2025"
-        foreach ($months as $month_name => $month_num) {
-            if (preg_match('/^(\d{1,2})\s+' . $month_name . '\s+(\d{2,4})$/i', $date_string, $matches)) {
-                $year = intval($matches[2]);
-                if ($year < 50) $year += 2000;
-                elseif ($year < 100) $year += 1900;
-                return mktime(0, 0, 0, $month_num, intval($matches[1]), $year);
+        foreach ( $months as $month_name => $month_num ) {
+            if ( preg_match( '/^(\d{1,2})\s+' . $month_name . '\s+(\d{2,4})$/i', $date_string, $matches ) ) {
+                $year = intval( $matches[2] );
+                if ( $year < 50 ) {
+                    $year += 2000;
+                }
+                elseif ( $year < 100 ) {
+                    $year += 1900;
+                }
+                return mktime( 0, 0, 0, $month_num, intval( $matches[1] ), $year );
             }
         }
 
         // "01-Mar-2025" format
-        foreach ($months as $month_name => $month_num) {
-            if (preg_match('/^(\d{1,2})-' . $month_name . '-(\d{2,4})$/i', $date_string, $matches)) {
-                $year = intval($matches[2]);
-                if ($year < 50) $year += 2000;
-                elseif ($year < 100) $year += 1900;
-                return mktime(0, 0, 0, $month_num, intval($matches[1]), $year);
+        foreach ( $months as $month_name => $month_num ) {
+            if ( preg_match( '/^(\d{1,2})-' . $month_name . '-(\d{2,4})$/i', $date_string, $matches ) ) {
+                $year = intval( $matches[2] );
+                if ( $year < 50 ) {
+                    $year += 2000;
+                }
+                elseif ( $year < 100 ) {
+                    $year += 1900;
+                }
+                return mktime( 0, 0, 0, $month_num, intval( $matches[1] ), $year );
             }
         }
 
         // Year only: "2025"
-        if (preg_match('/^(\d{4})$/', $date_string, $matches)) {
-            return mktime(0, 0, 0, 1, 1, intval($matches[1]));
+        if ( preg_match( '/^(\d{4})$/', $date_string, $matches ) ) {
+            return mktime( 0, 0, 0, 1, 1, intval( $matches[1] ) );
         }
 
         return false;
