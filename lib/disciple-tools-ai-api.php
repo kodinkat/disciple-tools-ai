@@ -2050,21 +2050,20 @@ class Disciple_Tools_AI_API {
             // First, try to handle relative/temporal expressions
             $timestamp = self::parse_temporal_expression( $date_string );
             if ( $timestamp !== false ) {
-                return date( 'Y-m-d', $timestamp );
+                return gmdate( 'Y-m-d', $timestamp );
             }
 
             // Handle standard date formats
             $timestamp = self::parse_standard_date_formats( $date_string );
             if ( $timestamp !== false ) {
-                return date( 'Y-m-d', $timestamp );
+                return gmdate( 'Y-m-d', $timestamp );
             }
 
             // Fallback to PHP's strtotime
             $timestamp = strtotime( $date_string );
             if ( $timestamp !== false ) {
-                return date( 'Y-m-d', $timestamp );
+                return gmdate( 'Y-m-d', $timestamp );
             }
-
         } catch ( Exception $e ) {
             dt_write_log( 'Date parsing error: ' . $e->getMessage() );
         }
@@ -2283,7 +2282,6 @@ class Disciple_Tools_AI_API {
             'feb' => 2,
             'mar' => 3,
             'apr' => 4,
-            'may' => 5,
             'jun' => 6,
             'jul' => 7,
             'aug' => 8,
