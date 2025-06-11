@@ -2038,7 +2038,7 @@ class Disciple_Tools_AI_API {
         return $modules[ $module_id ][ $module_property ] === $module_value;
     }
 
-    private static function parse_date_to_standard_format($date_string): string|false {
+    private static function parse_date_to_standard_format($date_string) {
         $date_string = trim($date_string);
 
         // Handle empty strings
@@ -2072,7 +2072,7 @@ class Disciple_Tools_AI_API {
         return false;
     }
 
-    private static function parse_temporal_expression($date_string): int|false {
+    private static function parse_temporal_expression($date_string) {
         $date_string = strtolower(trim($date_string));
         $now = time();
 
@@ -2171,7 +2171,7 @@ class Disciple_Tools_AI_API {
         return false;
     }
 
-    private static function parse_standard_date_formats($date_string): int|false {
+    private static function parse_standard_date_formats($date_string) {
         // ISO format: YYYY-MM-DD
         if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $date_string, $matches)) {
             return mktime(0, 0, 0, intval($matches[2]), intval($matches[3]), intval($matches[1]));
