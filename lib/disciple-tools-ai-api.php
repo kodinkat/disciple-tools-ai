@@ -16,7 +16,17 @@ class Disciple_Tools_AI_API {
          */
 
         $original_prompt = $prompt;
-        $pii = self::parse_prompt_for_pii( $post_type, $prompt );
+        //$pii = self::parse_prompt_for_pii( $post_type, $prompt );
+        
+        $pii = [
+            'prompt' => [
+                'original' => $prompt,
+                'obfuscated' => $prompt,
+            ],
+            'pii' => [],
+            'mappings' => []
+        ];
+
         $has_pii = ( !empty( $pii['pii'] ) && !empty( $pii['mappings'] ) && isset( $pii['prompt']['obfuscated'] ) );
         if ( $has_pii ) {
             $prompt = $pii['prompt']['obfuscated'];
@@ -151,7 +161,8 @@ class Disciple_Tools_AI_API {
                 ]
             ],
             'filter' => $reshaped_fields,
-            'posts' => $list_posts
+            'posts' => $list_posts,
+            'inferred' => $fields
         ];
     }
 
@@ -224,7 +235,8 @@ class Disciple_Tools_AI_API {
             ],
             'pii' => $pii,
             'filter' => $reshaped_fields,
-            'posts' => $list_posts
+            'posts' => $list_posts,
+            'inferred' => $filtered_fields
         ];
     }
 
@@ -301,13 +313,15 @@ class Disciple_Tools_AI_API {
 
                     // Ensure a valid JSON structure has been inferred; otherwise, retry!
                     $inferred_response = json_decode( wp_remote_retrieve_body( $inferred ), true );
+
                     if ( isset( $inferred_response['choices'][0]['message']['content'] ) ) {
 
                         /**
                          * Attempt to cleanse inferred.....
                          */
 
-                        $cleansed_inferred_response = str_replace( [ '\n', '\r' ], '', trim( $inferred_response['choices'][0]['message']['content'] ) );
+                        $cleansed_inferred_response = explode( '\n', trim( $inferred_response['choices'][0]['message']['content'] ) )[0] ?? '';
+                        $cleansed_inferred_response = str_replace( [ '\n', '\r' ], '', $cleansed_inferred_response );
                         $cleansed_inferred_response = str_replace( [ '\"' ], '"', $cleansed_inferred_response );
 
                         // Extract inferred filter into final response and stop retry attempts.

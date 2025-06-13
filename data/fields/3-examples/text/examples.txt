@@ -1,5 +1,5 @@
 Tim ==//== [{"field_key": "name", "field_value": "Tim", "intent": "EQUALS" }]
-pc71f056ba8ne4aSi2 ==//== [{"field_key": "name", "field_value": "pc71f056ba8ne4aSi2", "intent": "EQUALS" }]
+Frank ==//== [{"field_key": "name", "field_value": "Frank", "intent": "EQUALS" }]
 Show all records with any name. ==//== [{"field_key": "name", "field_value": "", "intent": "ANY" }]
 Show all contacts called Bob. ==//== [{"field_key": "name", "field_value": "Bob", "intent": "EQUALS" }]
 Display records not containing the name Frank. ==//== [{"field_key": "name", "field_value": "Frank", "intent": "NOT_EQUALS" }]

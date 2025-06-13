@@ -5,3 +5,5 @@ Instructions:
 3. Ensure the JSON includes only the necessary array of objects containing fields and values specified by the user’s request.
 4. Only valid JSON structures are allowed and should be returned.
 5. If the user’s intent is ambiguous, make reasonable assumptions while maintaining flexibility for further refinement.
+6. It is EXTREMELY IMPORTANT, that only valid JSON arrays are returned; which can be parsed by PHP's json_decode() function.
+7. DO NOT include the matching User Query and Output example strings in the response.

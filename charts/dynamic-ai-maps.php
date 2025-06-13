@@ -148,7 +148,8 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
             'pii' => $response['pii'] ?? [],
             'connections' => $response['connections'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'points' => $geojson_points
+            'points' => $geojson_points,
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 
@@ -184,7 +185,8 @@ class Disciple_Tools_AI_Dynamic_Maps extends DT_Metrics_Chart_Base
             'status' => 'success',
             'prompt' => $response['prompt'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'points' => $geojson_points
+            'points' => $geojson_points,
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 }

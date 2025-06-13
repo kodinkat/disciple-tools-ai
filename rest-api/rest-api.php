@@ -146,7 +146,8 @@ class Disciple_Tools_AI_Endpoints
             'pii' => $response['pii'] ?? [],
             'connections' => $response['connections'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'posts' => $response['posts'] ?? []
+            'posts' => $response['posts'] ?? [],
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 
@@ -170,7 +171,8 @@ class Disciple_Tools_AI_Endpoints
             'status' => 'success',
             'prompt' => $response['prompt'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'posts' => $response['posts'] ?? []
+            'posts' => $response['posts'] ?? [],
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 }

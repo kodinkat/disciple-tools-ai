@@ -1,6 +1,6 @@
-Show me all contacts based in pc71f056ba8ne4aSi2. ==//== [{"field_key": "location_grid", "field_value": "pc71f056ba8ne4aSi2", "intent": "EQUALS" }]
-List all contacts in 8i5rkb9o093i7r0A6dtfa and bh7e3e1l63adkia5D8f09 ==//== [{"field_key": "location_grid", "field_value": ["8i5rkb9o093i7r0A6dtfa", "bh7e3e1l63adkia5D8f09"], "intent": "EQUALS" }]
-Show all contacts in co1c8rMao0o785fbc76f or cb158t60b1a0lrG87irafb ==//== [{"field_key": "location_grid", "field_value": ["co1c8rMao0o785fbc76f", "cb158t60b1a0lrG87irafb"], "intent": "EQUALS" }]
+Show me all contacts based in Brazil. ==//== [{"field_key": "location_grid", "field_value": "Brazil", "intent": "EQUALS" }]
+List all contacts in Spain and France ==//== [{"field_key": "location_grid", "field_value": ["Spain", "France"], "intent": "EQUALS" }]
+Show all contacts in Japan or Italy ==//== [{"field_key": "location_grid", "field_value": ["Japan", "Italy"], "intent": "EQUALS" }]
 Show all contacts in the World ==//== [{"field_key": "location_grid", "field_value": "World", "intent": "EQUALS" }]
-Contacts in 40P511d8cifs67aera ==//== [{"field_key": "location_grid", "field_value": "40P511d8cifs67aera", "intent": "EQUALS" }]
+Contacts in Mexico ==//== [{"field_key": "location_grid", "field_value": "Mexico", "intent": "EQUALS" }]
 

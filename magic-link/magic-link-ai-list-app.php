@@ -476,7 +476,8 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
             'pii' => $response['pii'] ?? [],
             'connections' => $response['connections'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'posts' => $response['posts'] ?? []
+            'posts' => $response['posts'] ?? [],
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 
@@ -500,7 +501,8 @@ class Disciple_Tools_AI_Magic_List_App extends DT_Magic_Url_Base {
             'status' => 'success',
             'prompt' => $response['prompt'] ?? [],
             'filter' => $response['filter'] ?? [],
-            'posts' => $response['posts'] ?? []
+            'posts' => $response['posts'] ?? [],
+            'inferred' => $response['inferred'] ?? []
         ];
     }
 
